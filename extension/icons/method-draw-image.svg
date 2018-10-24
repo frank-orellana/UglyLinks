@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="240" height="240" version="1.1" id="svg30" sodipodi:docname="method-draw-image.svg" inkscape:version="0.92.3 (2405546, 2018-03-11)" viewBox="0 0 240 240" inkscape:export-filename="E:\dev\git\UglyLinks\extension\icons\uglylinks-main-48.png" inkscape:export-xdpi="19.200001" inkscape:export-ydpi="19.200001">
+  <sodipodi:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1" objecttolerance="10" gridtolerance="10" guidetolerance="10" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-width="1366" inkscape:window-height="705" id="namedview32" showgrid="false" inkscape:zoom="0.98333333" inkscape:cx="-6.6101695" inkscape:cy="112.73027" inkscape:window-x="-8" inkscape:window-y="-8" inkscape:window-maximized="1" inkscape:current-layer="g28" />
+  <metadata id="metadata5458">image/svg+xml<rdf:RDF>
+  <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+    <dc:title></dc:title>
+  </cc:Work>
+</rdf:RDF>
+</metadata>
+  <defs id="defs13">
+    <filter id="filter5068">
+      <feGaussianBlur stdDeviation="0.164245" id="feGaussianBlur5070" />
+    </filter>
+    <linearGradient y2="1.554765" x2="-7.0000001e-006" y1="-0.18363801" x1="-7.0000001e-006" id="linearGradient5153" xlink:href="#linearGradient5024" />
+    <linearGradient id="linearGradient5032">
+      <stop stop-color="#ce1212" id="stop5034" offset="0" />
+      <stop stop-color="#ff1212" id="stop5036" offset="1" />
+    </linearGradient>
+    <linearGradient id="linearGradient5024">
+      <stop stop-color="#ffffff" id="stop5026" offset="0" />
+      <stop stop-color="#ffffff" stop-opacity="0" id="stop5028" offset="1" />
+    </linearGradient>
+    <linearGradient y2="9.0000003e-006" x2="9.9999997e-006" y1="1.0000041" x1="9.9999997e-006" id="linearGradient5503" xlink:href="#linearGradient5032" />
+  </defs>
+  <g id="g18">
+    <title id="title15">background</title>
+    <rect id="canvas_background" height="402" width="582" y="-1" x="-1" style="fill:none" />
+  </g>
+  <g id="g28">
+    <title id="title20">Layer 1</title>
+    <path d="m 68.690063,1.43908 95.106997,5e-5 67.25078,67.250827 -7e-5,95.107013 -67.25083,67.25077 -95.106999,-6e-5 -67.250771,-67.25083 5e-5,-95.107 67.250844,-67.25077 z" id="path3717" inkscape:connector-curvature="0" style="fill:#7e0000" />
+    <path d="m 76.203201,8.952229 95.107009,3e-5 67.25076,67.250852 -6e-5,95.107009 -67.25081,67.25076 -95.107021,-6e-5 L 8.952324,171.31 8.952351,76.202997 76.203202,8.95223 Z" id="path5042" inkscape:connector-curvature="0" style="fill:#000000;fill-opacity:0.25657905;filter:url(#filter5068)" />
+    <path d="m 71.470734,8.15211 89.545756,4e-5 63.31838,63.318439 -5e-5,89.545771 -63.31843,63.31837 -89.545763,-4e-5 L 8.15225,161.01625 8.15229,71.470498 71.470733,8.152111 Z" id="path3741" inkscape:connector-curvature="0" style="fill:#e78a8a" />
+    <path d="m 75.370979,17.568171 81.745251,1.9e-5 57.80259,57.802637 -3e-5,81.745243 -57.80263,57.80262 -81.745243,-4e-5 -57.802599,-57.80264 2.1e-5,-81.745237 57.802639,-57.802603 z" id="path3743" inkscape:connector-curvature="0" style="fill:url(#linearGradient5503)" />
+    <text font-weight="bold" xml:space="preserve" font-size="136" id="svg_1" y="160.45" x="26.5" style="font-weight:bold;font-size:136px;font-family:Helvetica, Arial, sans-serif;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0">UL</text>
+    <path d="M 71.429604,8.1797 8.15479,71.454521 V 98.635856 C 94.544823,118.69755 129.92477,72.689041 224.39265,97.633163 V 71.454521 L 161.00044,8.1797 H 71.429603 Z" id="path5509" inkscape:connector-curvature="0" style="fill:url(#linearGradient5153)" />
+  </g>
+</svg>

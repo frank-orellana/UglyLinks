@@ -1,0 +1,23 @@
+{
+  "extensionName"        : {"message" : "UglyLinks"},
+  "menuItemUglifyRemove" : {"message" : "Uglify/Remove",        "description": "Title of context menu item that uglifies/removes uglification of an item."},
+  "disableOnThisPage"    : {"message" : "Disable on this page", "description": "Text on disable UglyLinks for this website button." },
+  "enableOnThisPage"     : {"message" : "Enable on this page", "description": "Text on enable UglyLinks for this website button." },
+  "UpdateLinks"          : {"message" : "Update links"           } ,
+  "RemoveAll"            : {"message" : "Remove All Links"       } ,
+  "ExportLinks"          : {"message" : "Export Links..."        } ,
+  "ImportLinks"          : {"message" : "Import Links..."        } ,
+  "CloseWindow"          : {"message" : "Close"                  } ,
+  "ConfirmRemoveAll"     : {"message" : "Are you sure you want to remove all links?\nThis action can not be undone!"},
+  "SuccessImportMsg"     : {"message" : "Succesfuly imported new links"},
+  "togglePageButton"     : {"message" : "Uglify this Link"},
+  "togglePageUglified"   : {"message" : "The URL $URL$ has been uglified", "placeholders": {"url" : {"content" : "$1"}}},
+  "togglePageButton2"    : {"message" : "Deuglify this Link"},
+  "togglePageDeuglified" : {"message" : "The URL $URL$ has been deuglified", "placeholders": {"url" : {"content" : "$1"}}},
+  "DateAdded"            : {"message" : "Date Added"},
+  "lastSeen"             : {"message" : "Last seen"},
+  "uglifiedCount"        : {"message" : "Uglified Count"},
+  "URLListTitle"         : {"message" : "Uglified Links"},
+  "disabledListTitle"    : {"message" : "UglyLinks is disabled for the following websites"},
+  "tac"                  : {"message" : "There are $1 uglified links"}
+}

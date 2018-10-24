@@ -1,0 +1,12 @@
+{
+  "extensionName"        : {"message" : "UglyLinkses"},
+  "menuItemUglifyRemove" : {"message" : "Uglifica/Remover"                , "description": "Título del menú que uglifica/remueve la uglificación de un link." },
+  "disableOnThisPage"    : {"message" : "Desabilitar en esta página" },
+  "UpdateLinks"          : {"message" : "Actualizar links"       } ,
+  "RemoveAll"            : {"message" : "Borrar todos"           } ,
+  "ExportLinks"          : {"message" : "Exportar..."            } ,
+  "ImportLinks"          : {"message" : "Importar..."            } ,
+  "CloseWindow"          : {"message" : "Cerrar"                 } ,
+  "ConfirmRemoveAll"     : {"message" : "¿Está seguro que desea borrar todos los links?\n¡Esta acción no se puede deshacer!"},
+  "SuccessImportMsg"     : {"message" : "Importados exitosamente los links"}
+}

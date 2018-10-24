@@ -1,0 +1,37 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "outDir": "./extension/js/",
+    "sourceMap": false,
+    "declaration": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedParameters": true,
+    "noImplicitThis": true,
+    "moduleResolution": "node",
+    "strict": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "alwaysStrict": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es2017",
+    "module": "es6",
+    "typeRoots": ["@types", "node_modules/web-ext-types","node_modules/@types","../node_modules/@types",
+      "../node_modules/vue/types",
+      "node_modules/vue/types"],
+    "lib": [
+      "es2017",
+      "dom"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "test",
+    "**/*.webpack.ts" 
+  ],
+  "include": [
+    "./src/**/*"
+  ]
+}

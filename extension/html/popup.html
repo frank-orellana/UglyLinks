@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="../css/bootstrap/bootstrap.min.css" />
+	<link rel="stylesheet" href="../css/uglylinks.css" />
+	<link rel="stylesheet" href="../css/popup.css" />
+
+
+	<script defer src="../js/lib/jquery/jquery-3.3.1.min.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT"></script>
+	<script defer src="../js/lib/bootstrap/bootstrap.bundle.min.js" integrity="sha384-pjaaA8dDz/5BgdFUPX6M/9SUZv4d12SUPF0axWc+VRZkx5xU3daN+lYb49+Ax+Tl"></script>
+	<script defer src="../js/lib/vue/vue.js"></script>
+	<script defer src="../js/lib/all.min.js"></script>
+	<script defer src="../js/lib/browser-polyfill.min.js"></script>
+	<script defer src="../js/lib/idb.js"></script>
+	<script defer src="../js/popup.js" type="module"></script>
+</head>
+
+<body>
+	<div id="main" class="container">
+		<div>
+			<span class="text-secondary">{{ msgs('extensionName' )}}</span>
+			<button type="button" @click="closeWindow" class="close" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+		</div>
+		<nav>
+			<div class="nav nav-tabs flex-column nav-pills" id="nav-tab" role="tablist" aria-orientation="vertical">
+				<a class="nav-item nav-link" @click="toggleThisPageURL" id="nav-home-tab" href="#" aria-controls="nav-home">
+					{{msgTogglePage}}
+				</a>
+				<a class="nav-item nav-link" @click="toggleUL" id="nav-profile-tab" href="#" aria-controls="nav-profile">
+					{{msgToggleUL}}
+				</a>
+				<a class="nav-item nav-link" @click="updateLinks" id="nav-contact-tab" href="#" aria-controls="nav-contact">
+					{{msgs('UpdateLinks')}}
+				</a>
+			</div>
+		</nav>
+
+		<span>{{uglified_count}} uglified links</span>
+		<a class="close" :title="i18n.msgs({id:'options',def:'Options'})" @click="openOptions" style="color:#b6b6b6;">
+			<i class="fas fa-cog"></i> <!-- uses solid style -->
+		</a>
+	</div>
+
+</body>
+
+</html>

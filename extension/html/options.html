@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>UglyLinks</title>
+	<link rel="stylesheet" href="../css/bootstrap/bootstrap.min.css" />
+	<link rel="stylesheet" href="../css/uglylinks.css" />
+	<link rel="stylesheet" href="../css/options.css" />
+
+	<script defer src="../js/lib/vue/vue.js"></script>
+	<script defer src="../js/lib/all.min.js"></script>
+	<script defer src="../js/lib/idb.js"></script>
+</head>
+
+<body>
+	<i class="fas fa-cog position-fixed" style="color:#d8d8d8;width:50%;height:auto;top:-20%;left:-25%;"></i> <!-- uses solid style -->
+  <i class="fas fa-user"></i> <!-- uses regular style -->
+  <!--brand icon-->
+  <i class="fab fa-github-square"></i> <!-- uses brands style -->
+	<div id="app" class="container">
+
+		<div class="row">
+			<div class="col-md-3">
+				<div class="nav flex-column nav-pills" id="sidebar" role="tablist" aria-orientation="vertical">
+					<a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home"
+					 aria-selected="true">Ugly Links</a>
+					<a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile"
+					 aria-selected="false">Disabled websites</a>
+					<a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact"
+					 aria-selected="false">General</a>
+				</div>
+			</div>
+
+			<div class="col-md-9">
+				<div class="tab-content" id="myTabContent">
+					<div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+						<h1>uglyLinks</h1>
+						<input id="remove_all_links" type="button" class="btn btn-sm" @click="removeAll" :value="i18n.msgs({id: 'rem_all', def:'Remove all links!'})" />
+						<input id="export" type="button" class="btn btn-sm" @click="exportLinks" :value="i18n.msgs('ExportLinks')" />
+						<input id="import" type="button" class="btn btn-sm" @click="importLinks" :value="i18n.msgs('ImportLinks')" />
+						<input type="file" id="fileElem" multiple accept=".json" style="display:none" @change="fileChange">
+
+						<input id="close" type="button" class="btn btn-sm" :value="i18n.msgs('CloseWindow')" @click="closeWindow" />
+						<p>{{ i18n.msgs({id:'URLListTitle',def:'All uglified links:'}) }}</p>
+						<hr class="col-md-12">
+						<p>{{ i18n.msgs({id:'tac',def:'There are $1 uglified links'}, links.length) }}</p>
+						<div class="url_list">
+
+							<table class="ul_table">
+								<thead>
+									<tr>
+										<th>URL</th>
+										<th>{{ i18n.msgs('DateAdded') }}</th>
+										<th>{{ i18n.msgs('LastSeen') }}</th>
+										<th>{{ i18n.msgs('uglifiedCount') }}</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr v-for="(l,idx) of links">
+										<td><a :href="'https://' + l.url">{{(l.url.length <= 200) ?l.url:l.url.substr(0,200)+'...' }}</a></td>
+										<td>{{i18n.formatDateTime(l.added)}}</td>
+										<td>{{i18n.formatDateTime(l.last_seen)}}</td>
+										<td>{{l.uglified_count}}</td>
+										<td>
+											Borrar: <input type="button" @click="removeOne(idx);" class="remove_link_btn" />
+										</td>
+									</tr>
+									<tr v-if="links.length == 0">
+										<td colspan="5">{{i18n.msgs({id:"no_links",def:"There are no UglyLinks yet, right click on any page and then click on Uglify/Remove to add."})}}</td>
+									</tr>
+								</tbody>
+								<tfoot>
+									<tr><td colspan="5">&nbsp;</td></tr>
+								</tfoot>
+							</table>
+						</div>
+					</div>
+					<div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+						<!-- Páginas deshabilitadas -->
+						<div class="url_list">
+							<p>{{ i18n.msgs('disabledListTitle') }}</p>
+							<table id="disabled_list_xxx" class="ul_table">
+								<thead>
+									<tr>
+										<th>URL</th>
+										<th>{{ i18n.msgs('LastSeen') }}</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr v-for="(dw,idx) of disabledWebs">
+										<td>url: {{ dw[0] }}</td>
+										<td>{{dw[1].last_seen}}</td>
+										<td>
+											Enable: <input type="button" @click="removeOneDW(idx);" class="remove_link_btn" />
+										</td>
+									</tr>
+									<tr v-if="disabledWebs.length == 0">
+										<td colspan="5">{{i18n.msgs({id:"no_dwebs",def:"UglyLinks is enabled for all websites!"})}}</td>
+									</tr>
+								</tbody>
+								<tfoot>
+									<tr><td colspan="5">&nbsp;</td></tr>
+								</tfoot>
+							</table>
+						</div>
+					</div>
+					<div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+						TODO...
+					</div>
+				</div>
+
+
+			</div>
+		</div>
+	</div>
+	<script src="../js/lib/jquery/jquery-3.3.1.min.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT"></script>
+	<script src="../js/lib/bootstrap/bootstrap.bundle.min.js" integrity="sha384-pjaaA8dDz/5BgdFUPX6M/9SUZv4d12SUPF0axWc+VRZkx5xU3daN+lYb49+Ax+Tl"></script>
+	<script src="../js/lib/browser-polyfill.min.js"></script>
+	<script src="../js/options.js" type="module"></script>
+
+</body>
+
+</html>

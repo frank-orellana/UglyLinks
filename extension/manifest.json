@@ -1,0 +1,54 @@
+{
+  "manifest_version": 2,
+  "name": "UglyLinks",
+  "version": "0.1.0.22",
+  "version_name": "0.1 alpha",
+  "default_locale": "en",
+  "description": "Uglify links you don't like.",
+  "homepage_url": "https://github.com/frank-orellana/uglylinks",
+  "icons": {
+    "16": "icons/uglylinks-main-16.png",
+    "32": "icons/uglylinks-main-32.png",
+    "48": "icons/uglylinks-main-48.png",
+    "64": "icons/uglylinks-main-64.png"
+  },
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "contextMenus",
+    "storage",
+    "downloads"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "js/lib/browser-polyfill.min.js",
+        "js/uglylinks.js"
+      ]
+    }
+  ],
+  "background": {
+    "page": "html/background.html"
+  },
+  "browser_action": {
+    "default_icon": "icons/uglylinks-main-32.png",
+    "default_title": "Ugly Links",
+    "default_popup": "html/popup.html",
+    "browser_style": true
+  },
+  "options_ui": {
+    "page": "html/options.html",
+    "open_in_tab": true
+  },
+  "applications": {
+    "gecko": {
+      "id": "{6c4998fb-61a8-4b01-8efb-eb9bc8925b90}",
+      "strict_min_version": "60.0"
+    }
+  }
+}
