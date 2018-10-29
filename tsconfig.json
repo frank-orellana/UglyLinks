@@ -28,8 +28,7 @@
   },
   "exclude": [
     "node_modules",
-    "test",
-    "**/*.webpack.ts" 
+    "test"
   ],
   "include": [
     "./src/**/*"

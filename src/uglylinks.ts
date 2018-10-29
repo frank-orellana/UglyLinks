@@ -1,10 +1,10 @@
-/* Copyright 2018  Franklin Orellana
-This file is part of UglyLinks.
+// Copyright 2018  Franklin Orellana
+// This file is part of UglyLinks.
 
-UglyLinks is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-UglyLinks is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with UglyLinks.  If not, see <http://www.gnu.org/licenses/>. 
-*/
+// UglyLinks is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// UglyLinks is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+// You should have received a copy of the GNU General Public License along with UglyLinks.  If not, see <http://www.gnu.org/licenses/>. 
+
 /// <references type='web-ext-types' />
 
 console.debug('uglylinks Content Script Loading!');
@@ -48,7 +48,8 @@ class App {
 
 	static async getUpdatedLinks(): Promise<{links:Array<string>}>{
 		console.debug('sending message from content script: get-links');
-		const response = await browser.runtime.sendMessage({ type: "get-links", to:"background", msg: "message from content script" });
+		const response = await browser.runtime.sendMessage(
+						{ type: "get-links", to:"background", msg: "message from content script" });
 		console.debug("response:",response);
 		return response;
 	}
