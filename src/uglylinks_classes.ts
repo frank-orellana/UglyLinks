@@ -1,13 +1,11 @@
+// Copyright 2018  Franklin Orellana
+//This file is part of UglyLinks.
+//UglyLinks is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+//UglyLinks is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+//You should have received a copy of the GNU General Public License along with UglyLinks.  If not, see <http://www.gnu.org/licenses/>. 
 import { UpgradeDB, DB, ObjectStore, Transaction } from "./lib/idb";
-/* Copyright 2018  Franklin Orellana
-This file is part of UglyLinks.
 
-UglyLinks is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-UglyLinks is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with UglyLinks.  If not, see <http://www.gnu.org/licenses/>. 
-*/
-
-console.log('ulc idb',idb);
+//console.log('ulc idb', idb);
 
 export class LinkProps {
 	url: string = '';
@@ -40,12 +38,12 @@ export class Logger {
 		if (!e.stack) try {
 			throw e;
 		} catch (e) { if (!e.stack) return '0'; }// IE < 10, likely
-		const stack :string[] = e.stack ? e.stack.toString().split(/\r\n|\n/) : [];
+		const stack: string[] = e.stack ? e.stack.toString().split(/\r\n|\n/) : [];
 		// We want our caller's frame. It's index into |stack| depends on the
 		// browser and browser version, so we need to search for the second frame:
-		const frameRE :RegExp= /:(\d+):(?:\d+)[^\d]*$/;
+		const frameRE: RegExp = /:(\d+):(?:\d+)[^\d]*$/;
 		do {
-			var frame : string = stack.shift() || '';
+			var frame: string = stack.shift() || '';
 		} while (!frameRE.exec(frame) && stack.length);
 		frameRE.exec(stack.shift() || ''); //added so this can be called from inside logger
 		const m = (stack.shift() || '').match(/\/([^\/\)]+)\)?$/);
@@ -54,19 +52,19 @@ export class Logger {
 	}
 
 	static trace(...msg: any[]) {
-		const line :string = Logger.caller_ln();
+		const line: string = Logger.caller_ln();
 		console.log('UL_TRACE', line, ...msg);
 	}
 	static debug(...msg: any[]) {
-		const line :string = Logger.caller_ln();
+		const line: string = Logger.caller_ln();
 		console.log('UL_DBG', line, ...msg);
 	}
 	static warning(...msg: any[]) {
-		const line :string = Logger.caller_ln();
+		const line: string = Logger.caller_ln();
 		console.warn('UL_WRN', line, ...msg);
 	}
 	static error(...msg: any[]) {
-		const line :string= Logger.caller_ln();
+		const line: string = Logger.caller_ln();
 		console.error('UL_DBG', line, ...msg);
 	}
 }
@@ -74,7 +72,6 @@ export class Logger {
 export class UL_links {
 	storage: UL_Storage;
 	storeName: string;
-	//linksArray: Array<LinkProps>;
 	constructor(storage: UL_Storage) {
 		this.storeName = "uglyfied_links";
 		this.storage = storage;
@@ -130,19 +127,21 @@ export class UL_links {
 	async removeURL(url: string, persist = true) {
 		console.debug('removeURL', url, persist);
 
-		let nUrl :string = this.normalizeURL(url);
+		let nUrl: string = this.normalizeURL(url);
 		this.storage.deleteFromStore(this.storeName, nUrl);
 	}
-	async addURL(url: string, props: LinkProps = new LinkProps(), persist = true) {
+	async addURL(url: string, props: LinkProps = new LinkProps(), persist = true) :Promise<boolean> {
 		console.debug('addURL', url, props, persist);
 
-		let nUrl :string = this.normalizeURL(url); // url.replace(this.regexInitURL, '');
+		let nUrl: string = this.normalizeURL(url); // url.replace(this.regexInitURL, '');
 		props.url = nUrl;
 		props.added = new Date();
 		props.last_seen = props.added;
 		props.uglified_count = 1;
 
 		this.storage.putInStore(this.storeName, props);
+
+		return true;
 	}
 	async removeAllURLs() {
 		this.storage.deleteAllFromStore(this.storeName);
@@ -165,7 +164,7 @@ export class UL_links {
 		return u ? true : false;
 	}
 
-	get size() {
+	get size(): Promise<number> {
 		return this.storage.getStoreSize(this.storeName);
 	}
 }
@@ -196,6 +195,10 @@ export class UL_DisabledURLs extends UL_links {
 
 }
 
+interface ulInitParams{
+	dbName?:string
+}
+
 //******************* MAIN APP CLASS
 export class UglyLinks {
 	links: UL_links;
@@ -208,8 +211,8 @@ export class UglyLinks {
 		this.disabledWebsites = new UL_DisabledURLs(this.storage);
 	}
 
-	async init(): Promise<void> {
-		await this.storage.init();
+	async init(params?:ulInitParams): Promise<void> {
+		await this.storage.init(params);
 		await this.links.init();
 		await this.disabledWebsites.init();
 	}
@@ -222,15 +225,15 @@ export class UglyLinks {
 		if (reader.result instanceof ArrayBuffer)
 			throw '09232: invalid result';
 
-		if(!file)
+		if (!file)
 			throw 'invalid file element';
 
-		
+
 		let x = this;
 		reader.addEventListener("loadend", async function () {
-			const textResult :string = <string>reader.result;
-			if(!textResult) {
-				alert(i18n.msgs({id:"file_empty",def:"The file could not be read or is empty"}));
+			const textResult: string = <string>reader.result;
+			if (!textResult) {
+				alert(i18n.msgs({ id: "file_empty", def: "The file could not be read or is empty" }));
 				return;
 			}
 
@@ -246,8 +249,8 @@ export class UglyLinks {
 				x.links.addURL(e.url, props);
 			});
 
-			const resp = await x.sendMsgToAll("uglify_all",{origin: "imported"});
-			console.debug('Message to update all sent. Response:',resp);
+			const resp = await x.sendMsgToAll("uglify_all", { origin: "imported" });
+			console.debug('Message to update all sent. Response:', resp);
 
 			if (callback) {
 				Logger.trace('calling callback function from importFile');
@@ -263,15 +266,15 @@ export class UglyLinks {
 	}
 
 	async export_links() {
-		const strLnks :string = JSON.stringify({ uglyLinks: await this.links.getLinksArray() });
+		const strLnks: string = JSON.stringify({ uglyLinks: await this.links.getLinksArray() });
 		Logger.trace('Exporting links str:', strLnks);
 
-		const nUrl :string = URL.createObjectURL(new Blob([strLnks], { type: 'application/json' }));
+		const nUrl: string = URL.createObjectURL(new Blob([strLnks], { type: 'application/json' }));
 		browser.downloads.download({ url: nUrl, filename: 'uglylinks.json' });
 		return true;
 	}
 
-	sendMsgToAll(pType: string, otherParams?: object) : Promise<any>{
+	sendMsgToAll(pType: string, otherParams?: object): Promise<any> {
 		return browser.runtime.sendMessage({
 			type: pType,
 			otherParams: otherParams
@@ -312,7 +315,7 @@ export class UglyLinks {
 
 	async toggleUglyLinksOnWebsite(websiteURL: string): Promise<boolean> {
 
-		const disabled : boolean = await this.disabledWebsites.isUrlDisabled(websiteURL);
+		const disabled: boolean = await this.disabledWebsites.isUrlDisabled(websiteURL);
 		if (disabled) {
 			console.debug(`removing ${websiteURL} from disabled list`);
 			await this.disabledWebsites.enableURL(websiteURL); console.debug('...enabled');
@@ -324,11 +327,14 @@ export class UglyLinks {
 		Logger.trace('UglyLinks.disabledLinks:', this.disabledWebsites);
 		return disabled; // !enabled
 	}
-
+/**
+ * Adds or removes a url and returns the new state (true: added, false: removed)
+ * @param url string representing the url to add or remove
+ */
 	async toggleURL(url: string): Promise<boolean> {
-		const links :UL_links = this.links;
+		const links: UL_links = this.links;
 
-		const uglified : boolean = await links.hasURL(url);
+		const uglified: boolean = await links.hasURL(url);
 		if (uglified) {
 			await links.removeURL(url);
 		} else {
@@ -346,12 +352,19 @@ export interface i18n_msg {
 
 export class i18n {
 	static msgs(msg: string | i18n_msg, ...args: Array<any>): string {
-		if (typeof msg === 'string') {
-			const translatedMsg: string = browser.i18n.getMessage(msg, args);
-			return translatedMsg ? translatedMsg : msg;
-		} else {
-			const translatedMsg :string = browser.i18n.getMessage(msg.id, args);
-			return translatedMsg ? translatedMsg : (msg.default ? msg.default : (msg.def ? msg.def : ''));
+		try {
+			if (typeof msg === 'string') {
+				const translatedMsg: string = browser.i18n.getMessage(msg, ...args);
+				return translatedMsg ? translatedMsg : msg;
+			} else {
+				const translatedMsg: string = browser.i18n.getMessage(msg.id, ...args);
+				return translatedMsg ? translatedMsg : (msg.default ? msg.default : (msg.def ? msg.def : ''));
+			}
+		} catch (e) {
+			console.error("Error getting i18n message", msg, e);
+			if (typeof msg === 'string')
+				return msg;
+			return msg.id;
 		}
 	}
 
@@ -376,11 +389,17 @@ export class i18n {
 
 
 export class UL_Storage {
+	private dbName:string;
 	db: DB | undefined;
-	constructor() { }
+	constructor() {
+		this.dbName = 'uglylinks-db';
+	}
 
-	async init() {
+	async init(params?:ulInitParams) {
 		console.debug('Initializing storage');
+
+		if(params)
+			if(params.dbName)this.dbName = params.dbName;
 
 		if (!('indexedDB' in window)) return console.error('This browser doesn\'t support IndexedDB');
 
@@ -391,18 +410,17 @@ export class UL_Storage {
 		}
 
 		try {
-			this.db = await idb.open('uglylinks-db', 2, function (upgradeDb) {
+			this.db = await idb.open(this.dbName, 2, function (upgradeDb) {
 				console.debug("upgrade needed, creating objects");
 
 				checkStore(upgradeDb, 'uglyfied_links', { keyPath: 'url' });
 				checkStore(upgradeDb, 'disabled_webs', { keyPath: 'url' });
 				checkStore(upgradeDb, 'options', { keyPath: 'id' });
 			});
+			console.debug('Storage initialized', this.db);
 		} catch (e) {
 			console.error('Error opening store:', e, this.db);
 		}
-
-		console.debug('Storage initialized', this.db);
 	}
 
 	async getFromStore(storeName: string, key: any): Promise<any> {
@@ -429,7 +447,8 @@ export class UL_Storage {
 		}
 	}
 
-	async getAllFromStore(storeName: string, query?: IDBKeyRange | IDBValidKey, count?: number): Promise<any[] | undefined> {
+	async getAllFromStore(storeName: string, query?: IDBKeyRange | IDBValidKey, count?: number)
+				: Promise<any[] | undefined> {
 		console.log('getAllFromStore', storeName, query, count);
 		if (!this.db) throw 'DB is undefined';
 		try {
@@ -447,8 +466,8 @@ export class UL_Storage {
 		let k: IDBValidKey | undefined;
 		if (!this.db) throw 'DB is undefined';
 		try {
-			const tx : Transaction = this.db.transaction(storeName, 'readwrite');
-			const store :ObjectStore<any,any> = tx.objectStore(storeName);
+			const tx: Transaction = this.db.transaction(storeName, 'readwrite');
+			const store: ObjectStore<any, any> = tx.objectStore(storeName);
 			k = await store.put(object);
 			await tx.complete;
 		} catch (e) {
@@ -460,8 +479,8 @@ export class UL_Storage {
 	async deleteFromStore(storeName: string, key: string): Promise<void> {
 		console.debug('deleteFromStore', storeName);
 		if (!this.db) throw 'DB is undefined';
-		const tx : Transaction = this.db.transaction(storeName, 'readwrite');
-		const store : ObjectStore<any,any> = tx.objectStore(storeName);
+		const tx: Transaction = this.db.transaction(storeName, 'readwrite');
+		const store: ObjectStore<any, any> = tx.objectStore(storeName);
 		await store.delete(key);
 		return await tx.complete;
 	}
@@ -469,8 +488,8 @@ export class UL_Storage {
 	async deleteAllFromStore(storeName: string) {
 		console.debug('deleteAllFromStore', storeName);
 		if (!this.db) throw 'DB is undefined';
-		const tx : Transaction = this.db.transaction(storeName, 'readwrite');
-		const store : ObjectStore<any,any> = tx.objectStore(storeName);
+		const tx: Transaction = this.db.transaction(storeName, 'readwrite');
+		const store: ObjectStore<any, any> = tx.objectStore(storeName);
 		await store.delete(IDBKeyRange.lowerBound(0));
 		return await tx.complete;
 	}

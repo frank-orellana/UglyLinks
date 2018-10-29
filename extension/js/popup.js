@@ -1,10 +1,8 @@
-/* Copyright 2018  Franklin Orellana
-This file is part of UglyLinks.
-
-UglyLinks is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-UglyLinks is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with UglyLinks.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Copyright 2018  Franklin Orellana
+// This file is part of UglyLinks.
+// UglyLinks is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// UglyLinks is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+// You should have received a copy of the GNU General Public License along with UglyLinks.  If not, see <http://www.gnu.org/licenses/>. 
 import { UglyLinks, i18n } from "./uglylinks_classes.js";
 
 console.debug('popup.js');
@@ -26,17 +24,14 @@ ulApp.init().then(() => {
             ulApp: ulApp,
             i18n: i18n,
             disabledOnThisWebsite: true,
-            uglified_count: 0
+            uglified_count: 0,
+            msgTogglePageURL: 'Cheking URL'
         },
         computed: {
             msgToggleUL: function () {
                 console.debug(`Checking if "${currentURL}" is disabled`);
                 console.debug(`"${currentURL}" is ${this.disabledOnThisWebsite ? 'disabled' : 'enabled'}`);
                 return browser.i18n.getMessage(this.disabledOnThisWebsite ? "enableOnThisPage" : "disableOnThisPage");
-            },
-            msgTogglePage: function () {
-                return i18n.msgs((ulApp.links.hasURL(currentURL)) ?
-                    'togglePageButton2' : 'togglePageButton');
             }
         },
         methods: {
@@ -50,10 +45,14 @@ ulApp.init().then(() => {
                 await ulApp.sendMsgToActiveTab("toggle_ul", { enabledOnThisWebsite: enabledOnThisWebsite, links: links });
                 this.disabledOnThisWebsite = !enabledOnThisWebsite;
             },
+            setMsgTogglePageURL: async function () {
+                this.msgTogglePageURL = i18n.msgs((await ulApp.links.hasURL(currentURL)) ?
+                    'DeuglifyThisPageURLButton' : 'UglifyThisPageURLButton');
+            },
             toggleThisPageURL: async function () {
                 const uglified = await ulApp.toggleURL(currentURL);
-                const r = uglified ? "uglified" : "deuglified";
-                console.debug(`The URL '${currentURL.substr(0, 25)}...' has been ${r}`);
+                await this.setMsgTogglePageURL();
+                console.debug(`The URL '${currentURL.substr(0, 25)}...' has been ${uglified ? "uglified" : "deuglified"}`);
             },
             importConfig: function (_ev) {
                 const fileElem = document.getElementById("fileElem");
@@ -80,10 +79,13 @@ ulApp.init().then(() => {
                 }
             }
         },
-        async created() {
+        created: async function () {
+            console.debug('Popup vue app created');
             let x = this;
             browser.runtime.onMessage.addListener((message) => x.messageListener(message));
             this.disabledOnThisWebsite = await ulApp.disabledWebsites.isUrlDisabled(currentURL);
+            this.uglified_count = await ulApp.links.size;
+            await this.setMsgTogglePageURL();
         }
     });
 });

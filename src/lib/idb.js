@@ -15,6 +15,10 @@
       request.onerror = function() {
         reject(request.error);
       };
+
+      request.onbloqued = function(){
+        reject(request.error || 'blocked');
+      }
     });
   }
 

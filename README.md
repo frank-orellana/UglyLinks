@@ -6,7 +6,7 @@ To edit, download to a folder and move to it. Then execute:
 ````
 npm install -g typescript
 npm install
-npm run buildw
+npm run compile-watch
 ````
 
 This will:

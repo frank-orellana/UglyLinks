@@ -12,6 +12,9 @@
             request.onerror = function () {
                 reject(request.error);
             };
+            request.onbloqued = function () {
+                reject(request.error || 'blocked');
+            };
         });
     }
     function promisifyRequestCall(obj, method, args) {

@@ -59,7 +59,7 @@
 								</thead>
 								<tbody>
 									<tr v-for="(l,idx) of links">
-										<td><a :href="'https://' + l.url">{{(l.url.length <= 200) ?l.url:l.url.substr(0,200)+'...' }}</a></td>
+										<td><a :href="'http://' + l.url" target="_blank">{{(l.url.length <= 200) ?l.url:l.url.substr(0,200)+'...' }}</a></td>
 										<td>{{i18n.formatDateTime(l.added)}}</td>
 										<td>{{i18n.formatDateTime(l.last_seen)}}</td>
 										<td>{{l.uglified_count}}</td>

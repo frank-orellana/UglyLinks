@@ -1,11 +1,4 @@
-/* Copyright 2018  Franklin Orellana
-This file is part of UglyLinks.
-
-UglyLinks is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-UglyLinks is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with UglyLinks.  If not, see <http://www.gnu.org/licenses/>.
-*/
-console.log('ulc idb', idb);
+//console.log('ulc idb', idb);
 export class LinkProps {
     constructor() {
         this.url = '';
@@ -69,7 +62,6 @@ export class Logger {
     }
 }
 export class UL_links {
-    //linksArray: Array<LinkProps>;
     constructor(storage) {
         this.storeName = "uglyfied_links";
         this.storage = storage;
@@ -125,6 +117,7 @@ export class UL_links {
         props.last_seen = props.added;
         props.uglified_count = 1;
         this.storage.putInStore(this.storeName, props);
+        return true;
     }
     async removeAllURLs() {
         this.storage.deleteAllFromStore(this.storeName);
@@ -175,8 +168,8 @@ export class UglyLinks {
         this.links = new UL_links(this.storage);
         this.disabledWebsites = new UL_DisabledURLs(this.storage);
     }
-    async init() {
-        await this.storage.init();
+    async init(params) {
+        await this.storage.init(params);
         await this.links.init();
         await this.disabledWebsites.init();
     }
@@ -273,6 +266,10 @@ export class UglyLinks {
         Logger.trace('UglyLinks.disabledLinks:', this.disabledWebsites);
         return disabled; // !enabled
     }
+    /**
+     * Adds or removes a url and returns the new state (true: added, false: removed)
+     * @param url string representing the url to add or remove
+     */
     async toggleURL(url) {
         const links = this.links;
         const uglified = await links.hasURL(url);
@@ -287,13 +284,21 @@ export class UglyLinks {
 }
 export class i18n {
     static msgs(msg, ...args) {
-        if (typeof msg === 'string') {
-            const translatedMsg = browser.i18n.getMessage(msg, args);
-            return translatedMsg ? translatedMsg : msg;
+        try {
+            if (typeof msg === 'string') {
+                const translatedMsg = browser.i18n.getMessage(msg, ...args);
+                return translatedMsg ? translatedMsg : msg;
+            }
+            else {
+                const translatedMsg = browser.i18n.getMessage(msg.id, ...args);
+                return translatedMsg ? translatedMsg : (msg.default ? msg.default : (msg.def ? msg.def : ''));
+            }
         }
-        else {
-            const translatedMsg = browser.i18n.getMessage(msg.id, args);
-            return translatedMsg ? translatedMsg : (msg.default ? msg.default : (msg.def ? msg.def : ''));
+        catch (e) {
+            console.error("Error getting i18n message", msg, e);
+            if (typeof msg === 'string')
+                return msg;
+            return msg.id;
         }
     }
     static formatDate(myDate) {
@@ -314,9 +319,14 @@ export class i18n {
     }
 }
 export class UL_Storage {
-    constructor() { }
-    async init() {
+    constructor() {
+        this.dbName = 'uglylinks-db';
+    }
+    async init(params) {
         console.debug('Initializing storage');
+        if (params)
+            if (params.dbName)
+                this.dbName = params.dbName;
         if (!('indexedDB' in window))
             return console.error('This browser doesn\'t support IndexedDB');
         function checkStore(_db, storeName, optionalParameters) {
@@ -325,17 +335,17 @@ export class UL_Storage {
             }
         }
         try {
-            this.db = await idb.open('uglylinks-db', 2, function (upgradeDb) {
+            this.db = await idb.open(this.dbName, 2, function (upgradeDb) {
                 console.debug("upgrade needed, creating objects");
                 checkStore(upgradeDb, 'uglyfied_links', { keyPath: 'url' });
                 checkStore(upgradeDb, 'disabled_webs', { keyPath: 'url' });
                 checkStore(upgradeDb, 'options', { keyPath: 'id' });
             });
+            console.debug('Storage initialized', this.db);
         }
         catch (e) {
             console.error('Error opening store:', e, this.db);
         }
-        console.debug('Storage initialized', this.db);
     }
     async getFromStore(storeName, key) {
         console.debug('getFromStore', storeName, key);
