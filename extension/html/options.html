@@ -64,7 +64,7 @@
 										<td>{{i18n.formatDateTime(l.last_seen)}}</td>
 										<td>{{l.uglified_count}}</td>
 										<td>
-											Borrar: <input type="button" @click="removeOne(idx);" class="remove_link_btn" />
+											<input type="button" @click="removeOne(idx);" class="remove_link_btn" />
 										</td>
 									</tr>
 									<tr v-if="links.length == 0">
