@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "UglyLinks",
-  "version": "0.1.1.22",
+  "version": "0.1.1.23",
   "version_name": "0.1 alpha",
   "default_locale": "en",
   "description": "Uglify links you don't like.",

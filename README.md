@@ -17,7 +17,7 @@ This will:
 Then you can edit files in the ./src folder (typescript sources), and it will automatically compile into the extension/js folder
 
 To Build Extensions Packed files:
-npm run build-zip
+npm run build
 
 This will:
 1. create a temp folder builds\temp 
@@ -33,6 +33,11 @@ Option 1:
     Load Temporary Addon
 Go to the project folder/webextension and select the manifest.json file
 
-Option 2:
+Option 2: Firefox Developer Only
+    Run `npm run build` to create the zip
+    Go to url about:addons
+    Options -> Install Add-on From File
+Go to the project folder/builds and select the UglyLinks-firefox-{version}.zip file
+
 
 

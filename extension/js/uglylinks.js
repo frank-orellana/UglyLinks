@@ -219,7 +219,6 @@ class App {
     }
 }
 (async () => {
-    console.log('initializing!!!!!!!');
     await new App().initUglyLinks();
     console.log('initialized!!!!!!!');
 })();
