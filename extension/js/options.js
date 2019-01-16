@@ -31,10 +31,12 @@ uglyLinks.init()
                 await uglyLinks.disabledWebsites.removeURL(url);
                 this.disabledWebs.splice(idx, 1);
             },
-            removeAll: async (_ev) => {
+            removeAll: async function (_ev) {
                 let x = confirm(browser.i18n.getMessage('ConfirmRemoveAll'));
-                if (x === true)
+                if (x === true) {
                     await uglyLinks.removeAllLinks();
+                    await this.refreshUglifiedLinks();
+                }
                 else
                     console.trace('Operation cancelled');
             },
@@ -45,13 +47,17 @@ uglyLinks.init()
                     fileElem.click();
             },
             closeWindow: () => window.close(),
-            fileChange: (ev) => {
+            fileChange: async function (ev) {
                 const fileElem = document.getElementById("fileElem");
-                uglyLinks.importFile(ev, fileElem);
+                await uglyLinks.importFile(ev, fileElem);
+                await this.refreshUglifiedLinks();
+            },
+            refreshUglifiedLinks: async function () {
+                this.links = await uglyLinks.links.getLinksArray() || [];
             }
         },
         created: async function () {
-            this.links = await uglyLinks.links.getLinksArray() || [];
+            await this.refreshUglifiedLinks();
             this.disabledWebs = await uglyLinks.disabledWebsites.getLinksArray() || [];
         }
     });

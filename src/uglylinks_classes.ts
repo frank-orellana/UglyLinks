@@ -34,7 +34,7 @@ export class AppMessaging {
 
 export class Logger {
 	static caller_ln(): string { //thanks to https://stackoverflow.com/a/27074218/1583422
-		const e = new Error();
+		const e: Error = new Error();
 		if (!e.stack) try {
 			throw e;
 		} catch (e) { if (!e.stack) return '0'; }// IE < 10, likely
@@ -46,7 +46,7 @@ export class Logger {
 			var frame: string = stack.shift() || '';
 		} while (!frameRE.exec(frame) && stack.length);
 		frameRE.exec(stack.shift() || ''); //added so this can be called from inside logger
-		const m = (stack.shift() || '').match(/\/([^\/\)]+)\)?$/);
+		const m: RegExpMatchArray | null = (stack.shift() || '').match(/\/([^\/\)]+)\)?$/);
 		if (m) return m[1];
 		return '';
 	}
@@ -100,7 +100,7 @@ export class UL_links {
 	async getLinksIterable(): Promise<IterableIterator<[string, LinkProps]>> {
 		this.checkInitialization();
 
-		const a = await this.getLinksArray() || [];
+		const a: LinkProps[] = await this.getLinksArray() || [];
 		return a.reduce(
 			(map, currentURL) => map.set(currentURL.url, currentURL), new Map()).entries();
 	}
@@ -130,7 +130,7 @@ export class UL_links {
 		let nUrl: string = this.normalizeURL(url);
 		this.storage.deleteFromStore(this.storeName, nUrl);
 	}
-	async addURL(url: string, props: LinkProps = new LinkProps(), persist = true) :Promise<boolean> {
+	async addURL(url: string, props: LinkProps = new LinkProps(), persist = true): Promise<boolean> {
 		console.debug('addURL', url, props, persist);
 
 		let nUrl: string = this.normalizeURL(url); // url.replace(this.regexInitURL, '');
@@ -149,7 +149,7 @@ export class UL_links {
 
 	async hasURL(url: string, touch: boolean = false): Promise<boolean> {
 		this.checkInitialization()
-		const nUrl = this.normalizeURL(url);
+		const nUrl: string = this.normalizeURL(url);
 
 		let u: LinkProps = await this.storage.getFromStore(this.storeName, nUrl);
 
@@ -177,26 +177,26 @@ export class UL_DisabledURLs extends UL_links {
 
 	async isUrlDisabled(url: string): Promise<boolean> {
 		console.debug('isUrlDisabled', url);
-		const newUrl = this.normalizeURL(url, true);
+		const newUrl: string = this.normalizeURL(url, true);
 		return await this.hasURL(newUrl);
 	}
 
 	async disableURL(url: string) {
 		console.debug('disableURL', url);
-		const newUrl = this.normalizeURL(url, true);
+		const newUrl: string = this.normalizeURL(url, true);
 		await this.addURL(newUrl);
 	}
 
 	async enableURL(url: string) {
 		console.debug('enableURL', url);
-		const newUrl = this.normalizeURL(url, true);
+		const newUrl: string = this.normalizeURL(url, true);
 		await this.removeURL(newUrl);
 	}
 
 }
 
-interface ulInitParams{
-	dbName?:string
+interface ulInitParams {
+	dbName?: string
 }
 
 //******************* MAIN APP CLASS
@@ -211,58 +211,69 @@ export class UglyLinks {
 		this.disabledWebsites = new UL_DisabledURLs(this.storage);
 	}
 
-	async init(params?:ulInitParams): Promise<void> {
+	async init(params?: ulInitParams): Promise<void> {
 		await this.storage.init(params);
 		await this.links.init();
 		await this.disabledWebsites.init();
 	}
 
-	async importFile(_e: Event, fileElem: HTMLInputElement, callback?: Function) {
-		Logger.debug('File has changed, proceeding to import');
-		const file = fileElem.files ? fileElem.files[0] : undefined;
-
-		const reader = new FileReader();
-		if (reader.result instanceof ArrayBuffer)
-			throw '09232: invalid result';
-
-		if (!file)
-			throw 'invalid file element';
-
-
-		let x = this;
-		reader.addEventListener("loadend", async function () {
-			const textResult: string = <string>reader.result;
-			if (!textResult) {
-				alert(i18n.msgs({ id: "file_empty", def: "The file could not be read or is empty" }));
+	async importFile(_e: Event, fileElem: HTMLInputElement, callback?: Function): Promise<boolean> {
+		return new Promise<boolean>((resolve, reject) => {
+			Logger.debug('File has changed, proceeding to import');
+			let file:File;
+			if (fileElem.files)
+				file = fileElem.files[0];
+			else{
+				reject('65425: invalid file');
 				return;
 			}
 
-			const array_to_import: Array<LinkProps> = JSON.parse(textResult).uglyLinks;
-			//const map_to_import: Map<string, object> = new Map(JSON.parse(textResult).uglyLinks);
-
-			Logger.debug(`Importing ${array_to_import.length} entries to current links. Current size: ${x.links.size}`);
-
-			array_to_import.forEach((e) => {
-				console.debug('adding url to map', e);
-				const props: LinkProps = e;
-				if (!props.added) props.added = new Date();
-				x.links.addURL(e.url, props);
-			});
-
-			const resp = await x.sendMsgToAll("uglify_all", { origin: "imported" });
-			console.debug('Message to update all sent. Response:', resp);
-
-			if (callback) {
-				Logger.trace('calling callback function from importFile');
-				await callback();
+			const reader: FileReader = new FileReader();
+			if (reader.result instanceof ArrayBuffer){
+				reject('09232: invalid result');
+				return;
 			}
 
-			alert(browser.i18n.getMessage('SuccessImportMsg'));
+			if (!file){
+				reject('invalid file element');
+				return;
+			}
 
-			Logger.debug(`Importing finalized. Current size: ${x.links.size}`);
+			let x: UglyLinks = this;
+			reader.addEventListener("loadend", async function () {
+				const textResult: string = <string>reader.result;
+				if (!textResult) { 
+					alert(i18n.msgs({ id: "file_empty", def: "The file could not be read or is empty" }));
+					resolve(false);
+					return;
+				}
+
+				const array_to_import: Array<LinkProps> = JSON.parse(textResult).uglyLinks;
+
+				Logger.debug(`Importing ${array_to_import.length} entries to current links. Current size: ${await x.links.size}`);
+
+				array_to_import.forEach((e) => {
+					console.debug('adding url to map', e);
+					const props: LinkProps = e;
+					if (!props.added) props.added = new Date();
+					x.links.addURL(e.url, props);
+				});
+
+				const resp: any = await x.sendMsgToAll("uglify_all", { origin: "imported" });
+				console.debug('Message to update all sent. Response:', resp);
+
+				if (callback) {
+					Logger.trace('calling callback function from importFile');
+					await callback();
+				}
+
+				alert(browser.i18n.getMessage('SuccessImportMsg'));
+
+				Logger.debug(`Importing finalized. Current size: ${await x.links.size}`);
+				resolve(true);
+			});
+			reader.readAsText(file);
 		});
-		reader.readAsText(file);
-		return false;
 	}
 
 	async export_links() {
@@ -282,7 +293,7 @@ export class UglyLinks {
 	}
 
 	async sendMsgToActiveTab(pType: string, otherParams?: object) {
-		let tabs = await browser.tabs.query({ active: true, currentWindow: true });
+		let tabs: any[] = await browser.tabs.query({ active: true, currentWindow: true });
 
 		try {
 			if (tabs[0].id)
@@ -300,11 +311,10 @@ export class UglyLinks {
 
 	async removeAllLinks() {
 		Logger.trace('Removing All links');
-		this.links.removeAllURLs();
+		await this.links.removeAllURLs();
 
 		Logger.debug('All links removed');
 		return await this.sendMsgToActiveTab("deuglify_all");
-
 	}
 
 	/*async getCurrentURL(): Promise<string>{
@@ -327,10 +337,10 @@ export class UglyLinks {
 		Logger.trace('UglyLinks.disabledLinks:', this.disabledWebsites);
 		return disabled; // !enabled
 	}
-/**
- * Adds or removes a url and returns the new state (true: added, false: removed)
- * @param url string representing the url to add or remove
- */
+	/**
+	 * Adds or removes a url and returns the new state (true: added, false: removed)
+	 * @param url string representing the url to add or remove
+	 */
 	async toggleURL(url: string): Promise<boolean> {
 		const links: UL_links = this.links;
 
@@ -389,17 +399,17 @@ export class i18n {
 
 
 export class UL_Storage {
-	private dbName:string;
+	private dbName: string;
 	db: DB | undefined;
 	constructor() {
 		this.dbName = 'uglylinks-db';
 	}
 
-	async init(params?:ulInitParams) {
+	async init(params?: ulInitParams) {
 		console.debug('Initializing storage');
 
-		if(params)
-			if(params.dbName)this.dbName = params.dbName;
+		if (params)
+			if (params.dbName) this.dbName = params.dbName;
 
 		if (!('indexedDB' in window)) return console.error('This browser doesn\'t support IndexedDB');
 
@@ -448,7 +458,7 @@ export class UL_Storage {
 	}
 
 	async getAllFromStore(storeName: string, query?: IDBKeyRange | IDBValidKey, count?: number)
-				: Promise<any[] | undefined> {
+		: Promise<any[] | undefined> {
 		console.log('getAllFromStore', storeName, query, count);
 		if (!this.db) throw 'DB is undefined';
 		try {

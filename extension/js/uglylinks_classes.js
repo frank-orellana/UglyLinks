@@ -174,41 +174,53 @@ export class UglyLinks {
         await this.disabledWebsites.init();
     }
     async importFile(_e, fileElem, callback) {
-        Logger.debug('File has changed, proceeding to import');
-        const file = fileElem.files ? fileElem.files[0] : undefined;
-        const reader = new FileReader();
-        if (reader.result instanceof ArrayBuffer)
-            throw '09232: invalid result';
-        if (!file)
-            throw 'invalid file element';
-        let x = this;
-        reader.addEventListener("loadend", async function () {
-            const textResult = reader.result;
-            if (!textResult) {
-                alert(i18n.msgs({ id: "file_empty", def: "The file could not be read or is empty" }));
+        return new Promise((resolve, reject) => {
+            Logger.debug('File has changed, proceeding to import');
+            let file;
+            if (fileElem.files)
+                file = fileElem.files[0];
+            else {
+                reject('65425: invalid file');
                 return;
             }
-            const array_to_import = JSON.parse(textResult).uglyLinks;
-            //const map_to_import: Map<string, object> = new Map(JSON.parse(textResult).uglyLinks);
-            Logger.debug(`Importing ${array_to_import.length} entries to current links. Current size: ${x.links.size}`);
-            array_to_import.forEach((e) => {
-                console.debug('adding url to map', e);
-                const props = e;
-                if (!props.added)
-                    props.added = new Date();
-                x.links.addURL(e.url, props);
-            });
-            const resp = await x.sendMsgToAll("uglify_all", { origin: "imported" });
-            console.debug('Message to update all sent. Response:', resp);
-            if (callback) {
-                Logger.trace('calling callback function from importFile');
-                await callback();
+            const reader = new FileReader();
+            if (reader.result instanceof ArrayBuffer) {
+                reject('09232: invalid result');
+                return;
             }
-            alert(browser.i18n.getMessage('SuccessImportMsg'));
-            Logger.debug(`Importing finalized. Current size: ${x.links.size}`);
+            if (!file) {
+                reject('invalid file element');
+                return;
+            }
+            let x = this;
+            reader.addEventListener("loadend", async function () {
+                const textResult = reader.result;
+                if (!textResult) {
+                    alert(i18n.msgs({ id: "file_empty", def: "The file could not be read or is empty" }));
+                    resolve(false);
+                    return;
+                }
+                const array_to_import = JSON.parse(textResult).uglyLinks;
+                Logger.debug(`Importing ${array_to_import.length} entries to current links. Current size: ${await x.links.size}`);
+                array_to_import.forEach((e) => {
+                    console.debug('adding url to map', e);
+                    const props = e;
+                    if (!props.added)
+                        props.added = new Date();
+                    x.links.addURL(e.url, props);
+                });
+                const resp = await x.sendMsgToAll("uglify_all", { origin: "imported" });
+                console.debug('Message to update all sent. Response:', resp);
+                if (callback) {
+                    Logger.trace('calling callback function from importFile');
+                    await callback();
+                }
+                alert(browser.i18n.getMessage('SuccessImportMsg'));
+                Logger.debug(`Importing finalized. Current size: ${await x.links.size}`);
+                resolve(true);
+            });
+            reader.readAsText(file);
         });
-        reader.readAsText(file);
-        return false;
     }
     async export_links() {
         const strLnks = JSON.stringify({ uglyLinks: await this.links.getLinksArray() });
@@ -242,7 +254,7 @@ export class UglyLinks {
     }
     async removeAllLinks() {
         Logger.trace('Removing All links');
-        this.links.removeAllURLs();
+        await this.links.removeAllURLs();
         Logger.debug('All links removed');
         return await this.sendMsgToActiveTab("deuglify_all");
     }

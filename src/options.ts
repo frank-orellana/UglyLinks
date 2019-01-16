@@ -7,7 +7,7 @@
 import { UglyLinks, i18n, LinkProps } from "./uglylinks_classes.js";
 import Vue from 'vue';
 
-const uglyLinks = new UglyLinks();
+const uglyLinks : UglyLinks = new UglyLinks();
 
 uglyLinks.init()
 	.then(()=> {
@@ -38,11 +38,12 @@ uglyLinks.init()
 				
 				this.disabledWebs.splice(idx,1);
 			},
-			removeAll: async (_ev:Event) => {
+			removeAll: async function(_ev:Event) {
 				let x :boolean = confirm(browser.i18n.getMessage('ConfirmRemoveAll'));
-				if (x === true) 
+				if (x === true) {
 					await uglyLinks.removeAllLinks();
-				else 
+					await this.refreshUglifiedLinks();
+				}else 
 					console.trace('Operation cancelled');
 			},
 			exportLinks: () => uglyLinks.export_links(),
@@ -51,13 +52,17 @@ uglyLinks.init()
 				if (fileElem) fileElem.click();
 			},
 			closeWindow:()=>window.close(),
-			fileChange: (ev:Event) =>{
+			fileChange: async function(ev:Event){
 				const fileElem : HTMLInputElement = document.getElementById("fileElem") as HTMLInputElement;
-				uglyLinks.importFile(ev, fileElem as HTMLInputElement);
+				await uglyLinks.importFile(ev, fileElem as HTMLInputElement);
+				await this.refreshUglifiedLinks();
+			},
+			refreshUglifiedLinks: async function(){
+				this.links = await uglyLinks.links.getLinksArray() || [];
 			}
 		},
 		created: async function(){
-			this.links = await uglyLinks.links.getLinksArray() || [];
+			await this.refreshUglifiedLinks();
 			this.disabledWebs = await uglyLinks.disabledWebsites.getLinksArray() || [];
 		}
 	})
