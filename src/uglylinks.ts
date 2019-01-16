@@ -10,54 +10,58 @@
 console.debug('uglylinks Content Script Loading!');
 
 class App {
-	static ul_uglifyall_timeout: any;
+	static uglylinks: string[] | undefined = undefined;
 
 	_self: this = this;
 	observer = new MutationObserver(function (mutations) {
-		let uglyLinks: Array<string>; // = (await App.getUpdatedLinks()).links;
-		mutations.forEach(async (mutation) => {
+		let anchors: Set<HTMLAnchorElement> = new Set();
+
+		mutations.forEach((mutation) => {
 			if (mutation.type == 'childList') {
 				if (mutation.addedNodes.length > 0) {
-					let lnks: HTMLAnchorElement[] = [];
-					for (let i = 0; i < mutation.addedNodes.length; i++) {
+
+					for (let i: number = 0; i < mutation.addedNodes.length; i++) {
 						let e: Node = mutation.addedNodes[i];
-						if (e.nodeType != Node.TEXT_NODE) {
+						if (e.nodeType != Node.TEXT_NODE && e.nodeType != Node.COMMENT_NODE) {
 							const e1: HTMLElement = e as HTMLElement;
 							if (e1.tagName == 'A') {
-								lnks = lnks.concat(e1 as HTMLAnchorElement);
-							} else {
-								lnks = lnks.concat(Array.from(e1.getElementsByTagName('A') as HTMLCollectionOf<HTMLAnchorElement>));
+								if ((e1 as HTMLAnchorElement).href)
+									anchors = anchors.add(e1 as HTMLAnchorElement);
+							} else if (e1.getElementsByTagName) {
+								Array.from(e1.getElementsByTagName('A') as HTMLCollectionOf<HTMLAnchorElement>)
+									.filter(elem => elem.href)
+									.forEach(anc => anchors.add(anc));
 							}
 						}
 					}
-					if (lnks.length > 0){
-						if(!uglyLinks) uglyLinks = (await App.getUpdatedLinks()).links;
-						App.onNodeInserted(lnks,uglyLinks);
-					}
 				}
 			} else if (mutation.type == 'attributes') {
-				//console.trace('attributes:', mutation.target, mutation.attributeName);
-				if (mutation.attributeName && mutation.attributeName.toLocaleUpperCase() === 'HREF'){
-					if(!uglyLinks) uglyLinks = (await App.getUpdatedLinks()).links;
-					App.onNodeInserted([mutation.target as HTMLAnchorElement],uglyLinks);
+				if (mutation.attributeName && mutation.attributeName.toLocaleUpperCase() === 'HREF') {
+					const target: HTMLAnchorElement = mutation.target as HTMLAnchorElement;
+					if (target.href != "") //TODO: deuglify element if href is empty?
+						anchors = anchors.add(target);
 				}
 			}
+		});
 
-		})
+		if (anchors.size > 0) {
+			App.onNodeInserted(Array.from(anchors));
+		}
 	});
 
-	static async getUpdatedLinks(): Promise<{links:Array<string>}>{
+	static async getUpdatedLinks(): Promise<{ links: Array<string> }> {
 		console.debug('sending message from content script: get-links');
-		const response = await browser.runtime.sendMessage(
-						{ type: "get-links", to:"background", msg: "message from content script" });
-		console.debug("response:",response);
+		const response: any = await browser.runtime.sendMessage(
+			{ type: "get-links", to: "background", msg: "message from content script" });
+		console.debug("response:", response);
 		return response;
 	}
 
-	static async isThisURLdisabled(url:string):Promise<boolean>{
+	static async isThisURLdisabled(url: string): Promise<boolean> {
 		console.debug('sending message from content script: isURLDisabled');
-		const response = await browser.runtime.sendMessage({ type: "is-this-url-disabled", to:"background", url: url });
-		console.debug("response:",response);
+		const response: any = await browser.runtime.sendMessage(
+			{ type: "is-this-url-disabled", to: "background", url: url });
+		console.debug("response:", response);
 		return response.disabled;
 	}
 	async initUglyLinks(): Promise<boolean> {
@@ -66,8 +70,6 @@ class App {
 		/// @ts-ignore
 		browser.runtime.onMessage.addListener((message: any) => App.messageListener(message, this));
 		console.debug('Listener added on Content Script');
-
-		console.debug('UglyLinks Class initialized');
 
 		const url: string = window.location.host;
 		console.debug(`Checking if "${url}" is disabled`);
@@ -80,15 +82,19 @@ class App {
 		await App.uglifyAll();
 
 		this.enableObserver();
+
+		console.debug('UglyLinks Class initialized');
 		return true;
 
 	}
 
 	disableObserver() {
+		console.debug('Disabling mutation observer.');
 		this.observer.disconnect();
 	}
 
 	enableObserver() {
+		console.debug('Enabling mutation observer on document.');
 		this.observer.observe(document, {
 			childList: true,
 			attributes: true,
@@ -100,10 +106,11 @@ class App {
 	static async messageListener(message: any, app: App) {
 		console.debug('Receiving message:', message, app);
 		switch (message.type) {
-			case 'uglify':
+			case 'uglify': //Message received from background to uglify one url
 				let url: string = message.url;
 				const alreadyUglified: boolean = message.alreadyUglified;
 				await App.uglifyOne(url, alreadyUglified);
+				App.uglylinks = undefined; //in case of a page update, will force an update
 				break;
 			case 'uglify_all':
 				await App.uglifyAll(Array.from(document.links));
@@ -111,7 +118,7 @@ class App {
 			case 'deuglify_all':
 				App.DeUglifyAll();
 				break;
-			case 'toggle_ul':
+			case 'toggle_ul': //Activate or deactivate uglylinks on this website
 				app.toggleUglyLinks(message.otherParams.enabledOnThisWebsite, message.otherParams.links);
 				break;
 			default:
@@ -122,8 +129,8 @@ class App {
 	}
 
 
-	async toggleUglyLinks(enabledOnThisWebsite: boolean, links:Array<string>) {
-		
+	async toggleUglyLinks(enabledOnThisWebsite: boolean, links: Array<string>) {
+
 		if (enabledOnThisWebsite === undefined) {
 			const url: string = window.location.host;
 			enabledOnThisWebsite = !await App.isThisURLdisabled(url);
@@ -132,7 +139,7 @@ class App {
 		this.disableObserver();
 
 		if (enabledOnThisWebsite) {
-			await App.uglifyAll(Array.from(document.links),links);
+			await App.uglifyAll(Array.from(document.links), links);
 			this.enableObserver();
 		} else {
 			App.DeUglifyAll();
@@ -140,48 +147,37 @@ class App {
 		return true;
 	}
 
-	static onNodeInserted(E: Array<HTMLAnchorElement | HTMLAreaElement>, uglyLinks: Array<string>) {
-		const timeout_ms = 100;
-		if (!App.ul_uglifyall_timeout) {
-			console.debug(`dom changed... setting timeout to ${timeout_ms}ms`);
-			App.ul_uglifyall_timeout = setTimeout(() => App.uglifyAll(E,uglyLinks), timeout_ms);
-		}
+	static async onNodeInserted(E: Array<HTMLAnchorElement | HTMLAreaElement>) {
+		if (App.uglylinks == undefined)
+			App.uglylinks = (await App.getUpdatedLinks()).links;
+		await App.uglifyAll(E, App.uglylinks);
 	}
 
-	//TODO: correct this! what's links default value? pass it always? yes!
-	static async uglifyAll(l = Array.from(document.links), links?:string[]): Promise<boolean> {
-		if(links == undefined) links = (await App.getUpdatedLinks()).links;
-		console.debug(`Proceeding to uglify ${links.length} links in ${l.length} anchors`);
+	static async uglifyAll(l = Array.from(document.links), links?: string[]): Promise<boolean> {
+		if (links == undefined) links = (await App.getUpdatedLinks()).links;
 
 		if (links && links.length == 0) return false;
-		let cnt = 0;
+		let cnt: number = 0;
 
-		for (let i = 0; i < l.length; i++) {
+		for (let i: number = 0; i < l.length; i++) {
 			let e: HTMLAnchorElement | HTMLAreaElement = l[i];
 
-			const url = new URL(e.href, window.location.href); //TODO update storage in the end!
+			const url: URL = new URL(e.href, window.location.href); //TODO update storage in the end!
 			if (!e.hasAttribute("data-UL_color") && links.includes(App.normalizeURL(url.href))) {
 				this.uglifyElement(e);
 				cnt++;
 			}
 		}
 
-		console.debug(`Uglified ${cnt} anchors`);
-
-		browser.tabs.query({ active: true, currentWindow: true })
-			.then((tabs) => {
-				if (tabs[0] != undefined && typeof tabs[0].id == 'number')
-					browser.tabs.sendMessage(tabs[0].id || 0, {
-						type: "uglified_count",
-						count: cnt || 0
-					});
-				else
-					console.warn('no active tab');
-			}).then((val) => {
-				console.log("Count message sent. answer received:", val);
+		let resp: any;
+		if (cnt > 0)
+			resp = await browser.runtime.sendMessage({
+				type: "uglified_count",
+				count: cnt
 			});
 
-
+		console.debug(
+			`Uglified ${cnt}/${l.length} anchors. ${links.length} links in db.${resp ? ' Msg sent, resp:' : ''} `, resp);
 		return true;
 	}
 
@@ -190,7 +186,7 @@ class App {
 
 		console.debug(`Proceeding to DeUglify all links in ${l.length} anchors`);
 
-		for (let i = 0; i < l.length; i++) {
+		for (let i: number = 0; i < l.length; i++) {
 			let e: HTMLAnchorElement | HTMLAreaElement = l[i];
 			if (e.hasAttribute("data-UL_color")) {
 				App.deUglifyElement(e);
@@ -201,7 +197,7 @@ class App {
 	static normalizeURL(url: string, justHost: boolean = false): string {
 		let newUrl: string = url.replace(/(?:^https?:\/\/(?:www\.)?)|(?:^www\.)/i, '');
 		if (justHost)
-			newUrl = newUrl.split('/', 1)[0]; 
+			newUrl = newUrl.split('/', 1)[0];
 		return newUrl;
 	}
 	static async uglifyOne(url: string, alreadyUglified: boolean, baseURL: string = window.location.href) {
@@ -210,8 +206,8 @@ class App {
 
 		const l: HTMLCollectionOf<HTMLAnchorElement | HTMLAreaElement> = document.links;
 		console.debug(`verifying ${l.length} elements`);
-		for (let i = 0; i < l.length; i++) {
-			let e = l[i];
+		for (let i: number = 0; i < l.length; i++) {
+			let e: HTMLAnchorElement | HTMLAreaElement = l[i];
 			let element_url: string = App.normalizeURL(new URL(e.href, baseURL).href);
 			if (element_url == nUrl)
 				if (alreadyUglified) App.deUglifyElement(e);
@@ -255,5 +251,4 @@ class App {
 
 (async () => {
 	await new App().initUglyLinks();
-	console.log('initialized!!!!!!!');
 })();

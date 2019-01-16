@@ -10,39 +10,38 @@ class App {
     constructor() {
         this._self = this;
         this.observer = new MutationObserver(function (mutations) {
-            let uglyLinks; // = (await App.getUpdatedLinks()).links;
-            mutations.forEach(async (mutation) => {
+            let anchors = new Set();
+            mutations.forEach((mutation) => {
                 if (mutation.type == 'childList') {
                     if (mutation.addedNodes.length > 0) {
-                        let lnks = [];
                         for (let i = 0; i < mutation.addedNodes.length; i++) {
                             let e = mutation.addedNodes[i];
-                            if (e.nodeType != Node.TEXT_NODE) {
+                            if (e.nodeType != Node.TEXT_NODE && e.nodeType != Node.COMMENT_NODE) {
                                 const e1 = e;
                                 if (e1.tagName == 'A') {
-                                    lnks = lnks.concat(e1);
+                                    if (e1.href)
+                                        anchors = anchors.add(e1);
                                 }
-                                else {
-                                    lnks = lnks.concat(Array.from(e1.getElementsByTagName('A')));
+                                else if (e1.getElementsByTagName) {
+                                    Array.from(e1.getElementsByTagName('A'))
+                                        .filter(elem => elem.href)
+                                        .forEach(anc => anchors.add(anc));
                                 }
                             }
-                        }
-                        if (lnks.length > 0) {
-                            if (!uglyLinks)
-                                uglyLinks = (await App.getUpdatedLinks()).links;
-                            App.onNodeInserted(lnks, uglyLinks);
                         }
                     }
                 }
                 else if (mutation.type == 'attributes') {
-                    //console.trace('attributes:', mutation.target, mutation.attributeName);
                     if (mutation.attributeName && mutation.attributeName.toLocaleUpperCase() === 'HREF') {
-                        if (!uglyLinks)
-                            uglyLinks = (await App.getUpdatedLinks()).links;
-                        App.onNodeInserted([mutation.target], uglyLinks);
+                        const target = mutation.target;
+                        if (target.href != "") //TODO: deuglify element if href is empty?
+                            anchors = anchors.add(target);
                     }
                 }
             });
+            if (anchors.size > 0) {
+                App.onNodeInserted(Array.from(anchors));
+            }
         });
     }
     static async getUpdatedLinks() {
@@ -62,7 +61,6 @@ class App {
         /// @ts-ignore
         browser.runtime.onMessage.addListener((message) => App.messageListener(message, this));
         console.debug('Listener added on Content Script');
-        console.debug('UglyLinks Class initialized');
         const url = window.location.host;
         console.debug(`Checking if "${url}" is disabled`);
         if (await App.isThisURLdisabled(url)) {
@@ -71,12 +69,15 @@ class App {
         }
         await App.uglifyAll();
         this.enableObserver();
+        console.debug('UglyLinks Class initialized');
         return true;
     }
     disableObserver() {
+        console.debug('Disabling mutation observer.');
         this.observer.disconnect();
     }
     enableObserver() {
+        console.debug('Enabling mutation observer on document.');
         this.observer.observe(document, {
             childList: true,
             attributes: true,
@@ -87,10 +88,11 @@ class App {
     static async messageListener(message, app) {
         console.debug('Receiving message:', message, app);
         switch (message.type) {
-            case 'uglify':
+            case 'uglify': //Message received from background to uglify one url
                 let url = message.url;
                 const alreadyUglified = message.alreadyUglified;
                 await App.uglifyOne(url, alreadyUglified);
+                App.uglylinks = undefined; //in case of a page update, will force an update
                 break;
             case 'uglify_all':
                 await App.uglifyAll(Array.from(document.links));
@@ -98,7 +100,7 @@ class App {
             case 'deuglify_all':
                 App.DeUglifyAll();
                 break;
-            case 'toggle_ul':
+            case 'toggle_ul': //Activate or deactivate uglylinks on this website
                 app.toggleUglyLinks(message.otherParams.enabledOnThisWebsite, message.otherParams.links);
                 break;
             default:
@@ -121,18 +123,14 @@ class App {
         }
         return true;
     }
-    static onNodeInserted(E, uglyLinks) {
-        const timeout_ms = 100;
-        if (!App.ul_uglifyall_timeout) {
-            console.debug(`dom changed... setting timeout to ${timeout_ms}ms`);
-            App.ul_uglifyall_timeout = setTimeout(() => App.uglifyAll(E, uglyLinks), timeout_ms);
-        }
+    static async onNodeInserted(E) {
+        if (App.uglylinks == undefined)
+            App.uglylinks = (await App.getUpdatedLinks()).links;
+        await App.uglifyAll(E, App.uglylinks);
     }
-    //TODO: correct this! what's links default value? pass it always? yes!
     static async uglifyAll(l = Array.from(document.links), links) {
         if (links == undefined)
             links = (await App.getUpdatedLinks()).links;
-        console.debug(`Proceeding to uglify ${links.length} links in ${l.length} anchors`);
         if (links && links.length == 0)
             return false;
         let cnt = 0;
@@ -144,19 +142,13 @@ class App {
                 cnt++;
             }
         }
-        console.debug(`Uglified ${cnt} anchors`);
-        browser.tabs.query({ active: true, currentWindow: true })
-            .then((tabs) => {
-            if (tabs[0] != undefined && typeof tabs[0].id == 'number')
-                browser.tabs.sendMessage(tabs[0].id || 0, {
-                    type: "uglified_count",
-                    count: cnt || 0
-                });
-            else
-                console.warn('no active tab');
-        }).then((val) => {
-            console.log("Count message sent. answer received:", val);
-        });
+        let resp;
+        if (cnt > 0)
+            resp = await browser.runtime.sendMessage({
+                type: "uglified_count",
+                count: cnt
+            });
+        console.debug(`Uglified ${cnt}/${l.length} anchors. ${links.length} links in db.${resp ? ' Msg sent, resp:' : ''} `, resp);
         return true;
     }
     static DeUglifyAll() {
@@ -218,7 +210,7 @@ class App {
         e.removeAttribute("data-UL_textDecoration");
     }
 }
+App.uglylinks = undefined;
 (async () => {
     await new App().initUglyLinks();
-    console.log('initialized!!!!!!!');
 })();
