@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "UglyLinks",
-  "version": "0.1.1.23",
-  "version_name": "0.1 alpha",
+  "version": "0.1.2.33",
+  "version_name": "0.1.2 alpha",
   "default_locale": "en",
   "description": "Uglify links you don't like.",
   "homepage_url": "https://github.com/frank-orellana/uglylinks",
@@ -47,7 +47,7 @@
   },
   "applications": {
     "gecko": {
-      "id": "{6c4998fb-61a8-4b01-8efb-eb9bc8925b90}",
+      "id": "UglyLinks@tritium.cl",
       "strict_min_version": "60.0"
     }
   }
