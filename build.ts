@@ -2,9 +2,9 @@
 import * as path from 'path';
 import {exec} from 'child_process';
  /* // */
-const fs = require('fs');
-const path = require('path');
-const exec = require('child_process').exec;
+const fs : any = require('fs');
+const path : any = require('path');
+const exec: any = require('child_process').exec;
 // */
 console.debug('Initializing build');
 
@@ -23,79 +23,91 @@ declare interface WebExtensionManifest {
         "64": string;
     },
     content_scripts: Array<{
-        matches:Array<string>,
-        js:Array<string>
+        matches: Array<string>,
+        js: Array<string>
     }>,
     applications: {
         gecko: any
     }
 }
 
-const extensionDir = path.resolve(__dirname, 'extension');
-const buildDir = path.resolve(__dirname, 'builds');
-const tmpBuildDir = path.join(buildDir, 'temp');
-const tmpDirFirefox = path.join(tmpBuildDir, 'firefox');
-const tmpDirChrome = path.join(tmpBuildDir, 'chrome');
+const extensionDir : string = path.resolve(__dirname, 'extension');
+const buildDir : string = path.resolve(__dirname, 'builds');
+const tmpBuildDir : string = path.join(buildDir, 'temp');
+const tmpDirFirefox : string = path.join(tmpBuildDir, 'firefox');
+const tmpDirChrome  : string = path.join(tmpBuildDir, 'chrome');
 
 
 
-let fileName = path.join(extensionDir, 'manifest.json');
+let fileName :string = path.join(extensionDir, 'manifest.json');
 console.debug("Reading original manifest file:", fileName)
-let fileJson = require(fileName) as WebExtensionManifest;
+let fileJson : WebExtensionManifest = require(fileName) as WebExtensionManifest;
 
 updateBuildNumber(fileJson, fileName);
 
 deleteFolderRecursive(tmpBuildDir);
 /* Firefox */
 copyFolderRecursiveSync(extensionDir, tmpDirFirefox, false);
-const manifestFirefoxPath = path.join(tmpDirFirefox, 'manifest.json');
+const manifestFirefoxPath : string = path.join(tmpDirFirefox, 'manifest.json');
 console.debug("Reading firefox manifest file:", fileName);
-const manifestFirefox = require(manifestFirefoxPath) as WebExtensionManifest;
+const manifestFirefox : WebExtensionManifest = require(manifestFirefoxPath) as WebExtensionManifest;
 delete manifestFirefox.version_name;
-manifestFirefox.content_scripts[0].js.splice(manifestFirefox.content_scripts[0].js.indexOf("js/lib/browser-polyfill.min.js"),1);
+manifestFirefox.content_scripts[0].js.splice(
+    manifestFirefox.content_scripts[0].js.indexOf("js/lib/browser-polyfill.min.js"), 1);
 writeJsonToFile(manifestFirefox, path.join(tmpDirFirefox, "manifest.json"));
 
-const browserPolifillRE = /<script +(?:defer)? ?src *= *"..\/js\/lib\/browser-polyfill.min.js" *><\/script>\n?/i;
-replaceInFile(path.join(tmpDirFirefox,'html','background.html'),browserPolifillRE,'');
-replaceInFile(path.join(tmpDirFirefox,'html','options.html'),browserPolifillRE,'');
-replaceInFile(path.join(tmpDirFirefox,'html','popup.html'),browserPolifillRE,'');
-fs.unlinkSync(path.join(tmpDirFirefox, 'js','lib',"browser-polyfill.min.js"));
+const browserPolifillRE : RegExp = 
+    /<script +(?:defer)? ?src *= *"..\/js\/lib\/browser-polyfill.min.js" *><\/script>\n?/i;
+replaceInFile(path.join(tmpDirFirefox, 'html', 'background.html'), browserPolifillRE, '');
+replaceInFile(path.join(tmpDirFirefox, 'html', 'options.html'), browserPolifillRE, '');
+replaceInFile(path.join(tmpDirFirefox, 'html', 'popup.html'), browserPolifillRE, '');
+fs.unlinkSync(path.join(tmpDirFirefox, 'js', 'lib', "browser-polyfill.min.js"));
 
-
-zipExtensions(tmpDirFirefox, path.join(buildDir, "UglyLinks-firefox-" + fileJson.version + ".zip"));
+const zippedFFExtFullPath: string = path.join(buildDir, "UglyLinks-firefox-latest.zip");
+(async  () => {
+    await zipExtensions(tmpDirFirefox, zippedFFExtFullPath);
+    fs.copyFileSync(zippedFFExtFullPath, zippedFFExtFullPath.replace('latest', fileJson.version));
+})();
 
 /*Chrome*/
 copyFolderRecursiveSync(extensionDir, tmpDirChrome, false);
 delete fileJson.applications;
 writeJsonToFile(fileJson, path.join(tmpDirChrome, "manifest.json"));
-zipExtensions(tmpDirChrome, path.join(buildDir, "UglyLinks-chrome-" + fileJson.version + ".zip"));
+const zippedCHromeExtFullPath: string = path.join(buildDir, "UglyLinks-chrome-latest.zip");
+(async () => {
+    await zipExtensions(tmpDirChrome, zippedCHromeExtFullPath);
+    fs.copyFileSync(zippedCHromeExtFullPath, zippedCHromeExtFullPath.replace('latest', fileJson.version));
+})();
 
 function zipExtensions(sourceDir: string, destFileName: string) {
-    const isWindows = process.platform.substr(0, 3) === 'win';
+    return new Promise((resolve, reject) => {
+        const isWindows: boolean = process.platform.substr(0, 3) === 'win';
 
-    if (isWindows) {
-        const s7zPath = path.join(process.env.PROGRAMFILES, "7-Zip", "7z.exe")
-        if (fs.existsSync(s7zPath)) {
-            const command = "\"" + s7zPath + "\"" + " a " + "\"" + destFileName + "\"" + " " + "\"" + path.join(sourceDir, "*") + "\"";
+        if (isWindows) {
+            const s7zPath: string = path.join(process.env.PROGRAMFILES, "7-Zip", "7z.exe")
+            if (fs.existsSync(s7zPath)) {
+                const command: string = "\"" + s7zPath + "\"" + " a " + "\"" + destFileName
+                    + "\"" + " " + "\"" + path.join(sourceDir, "*") + "\"";
 
-            exec(command, function callback(error: string) {
-                if (error) {
-                    console.error('Error while zipping files, command:', command, error);
-                    return false;
-                }
-                console.debug("zipped", destFileName);
-                return true;
-            });
+                exec(command, function callback(error: string) {
+                    if (error) {
+                        console.error('Error while zipping files, command:', command, error);
+                        reject(false);
+                    }
+                    console.debug("zipped", destFileName);
+                    resolve(true);
+                });
+            } else {
+                console.warn("7-zip not installed not installed on default path.")
+                console.error("Cannot zip extensions. You will have to do it manually")
+                reject();
+            }
         } else {
-            console.warn("7-zip not installed not installed on default path.")
-            console.error("Cannot zip extensions. You will have to do it manually")
+            console.log("Not on windows");
+            console.error("Cannot zip extensions. You will have to do it manually");
+            reject();
         }
-    } else {
-        console.log("Not on windows");
-        console.error("Cannot zip extensions. You will have to do it manually");
-    }
-
-
+    });
 }
 
 
@@ -123,7 +135,7 @@ function updateBuildNumber(jsonFile: WebExtensionManifest, destFile: string) {
 }
 
 function copyFileSync(source: string, target: string) {
-    let targetFile = target;
+    let targetFile :string = target;
 
     //if target is a directory a new file with the same name will be created
     if (fs.existsSync(target))
@@ -135,15 +147,15 @@ function copyFileSync(source: string, target: string) {
 
 function copyFolderRecursiveSync(source: string, target: string, copyFolderBaseName: boolean = true) {
 
-    const targetFolder = copyFolderBaseName ? path.join(target, path.basename(source)) : target;
+    const targetFolder : string = copyFolderBaseName ? path.join(target, path.basename(source)) : target;
     if (!fs.existsSync(targetFolder))
         fs.mkdirSync(targetFolder, { recursive: true });
 
     //copy
     if (fs.lstatSync(source).isDirectory()) {
-        const files = fs.readdirSync(source);
+        const files : string[] = fs.readdirSync(source);
         files.forEach(function (file: string) {
-            const curSource = path.join(source, file);
+            const curSource : string = path.join(source, file);
             if (fs.lstatSync(curSource).isDirectory()) {
                 copyFolderRecursiveSync(curSource, targetFolder);
             } else {
@@ -155,9 +167,9 @@ function copyFolderRecursiveSync(source: string, target: string, copyFolderBaseN
 
 function deleteFolderRecursive(pPath: string) {
     if (fs.existsSync(pPath)) {
-        const files = fs.readdirSync(pPath);
+        const files : string[] = fs.readdirSync(pPath);
         files.forEach(function (file: string) {
-            const curPath = path.join(pPath, file);
+            const curPath : string = path.join(pPath, file);
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
                 deleteFolderRecursive(curPath);
             } else  // delete file
