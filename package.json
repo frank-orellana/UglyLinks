@@ -18,14 +18,14 @@
   "license": "GPL-3.0-or-later",
   "devDependencies": {
     "@types/chai": "^4.1.7",
-    "@types/jquery": "^3.3.22",
+    "@types/jquery": "^3.3.29",
     "@types/mocha": "^2.2.48",
-    "@types/node": "^10.12.12",
+    "@types/node": "^10.12.18",
     "ts-node": "^7.0.1",
     "tsc-watch": "^1.0.31",
-    "tslint": "^5.11.0",
+    "tslint": "^5.12.1",
     "typescript": "^2.9.2",
-    "vue": "^2.5.17",
+    "vue": "^2.5.22",
     "web-ext-types": "^2.3.0"
   },
   "dependencies": {},
