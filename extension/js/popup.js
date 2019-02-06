@@ -59,10 +59,9 @@ ulApp.init().then(() => {
                 if (fileElem)
                     fileElem.click();
             },
-            updateLinks: () => ulApp.sendMsgToActiveTab("uglify_all", { origin: "popup" }),
-            exportLinks: () => ulApp.export_links(),
+            updateLinks: async () => ulApp.sendMsgToActiveTab("uglify_all", { origin: "popup" }),
             closeWindow: () => window.close(),
-            openOptions: () => browser.runtime.openOptionsPage(),
+            openOptions: async () => browser.runtime.openOptionsPage(),
             messageListener: async function (message) {
                 console.debug('Receiving message:', message);
                 if (message.to && message.to != 'popup') {
@@ -88,4 +87,5 @@ ulApp.init().then(() => {
             await this.setMsgTogglePageURL();
         }
     });
-});
+})
+    .catch(reason => console.error("Error loading popup", reason));

@@ -40,11 +40,11 @@ browser.contextMenus.create({
 async function uglifyOneLink(tabs: any, pUrl: any) {
 	const isUglified : boolean = await ulApp.links.hasURL(pUrl);
 	if(isUglified)
-		ulApp.links.removeURL(pUrl);
+		await ulApp.links.removeURL(pUrl);
 	else
-		ulApp.links.addURL(pUrl);
+		await ulApp.links.addURL(pUrl);
 	
-	browser.tabs.sendMessage(tabs[0].id, {
+	await browser.tabs.sendMessage(tabs[0].id, {
 		type: "uglify",
 		alreadyUglified: isUglified,
 		url: pUrl,
@@ -55,7 +55,7 @@ async function uglifyOneLink(tabs: any, pUrl: any) {
 async function menuHandler(info: any, _tab: any): Promise<boolean> {
 	switch (info.menuItemId) {
 		case "uglify":
-			let tabs = await browser.tabs.query({ active: true, currentWindow: true });
+			let tabs: any[] = await browser.tabs.query({ active: true, currentWindow: true });
 			return uglifyOneLink(tabs, info.linkUrl);
 	}
 	return false;
@@ -66,7 +66,7 @@ browser.contextMenus.onClicked.addListener(menuHandler);
 
 
 
-const ulApp = new UglyLinks();
+const ulApp: UglyLinks = new UglyLinks();
 ulApp.init().then(()=>{
 	browser.runtime.onMessage.addListener(async (msg: any): Promise<any> => {
 		console.debug('Message received in background:', msg);
@@ -98,7 +98,8 @@ ulApp.init().then(()=>{
 	
 		}
 	});
-});
+})
+.catch(reason => console.error(reason));
 
 
 

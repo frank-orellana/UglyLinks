@@ -7,13 +7,13 @@
 
 /// <references type='web-ext-types' />
 
-console.debug('uglylinks Content Script Loading!');
+console.debug(`UglyLinks ${browser.runtime.getManifest().version} Content Script Loading!`);
 
 class App {
 	static uglylinks: string[] | undefined = undefined;
 
 	_self: this = this;
-	observer = new MutationObserver(function (mutations) {
+	observer = new MutationObserver(async function (mutations) {
 		let anchors: Set<HTMLAnchorElement> = new Set();
 
 		mutations.forEach((mutation) => {
@@ -45,7 +45,7 @@ class App {
 		});
 
 		if (anchors.size > 0) {
-			App.onNodeInserted(Array.from(anchors));
+			await App.onNodeInserted(Array.from(anchors));
 		}
 	});
 
@@ -68,7 +68,7 @@ class App {
 		console.log('Initializing UglyLinks');
 
 		/// @ts-ignore
-		browser.runtime.onMessage.addListener((message: any) => App.messageListener(message, this));
+		browser.runtime.onMessage.addListener(async (message: any) => App.messageListener(message, this));
 		console.debug('Listener added on Content Script');
 
 		const url: string = window.location.host;
@@ -119,7 +119,7 @@ class App {
 				App.DeUglifyAll();
 				break;
 			case 'toggle_ul': //Activate or deactivate uglylinks on this website
-				app.toggleUglyLinks(message.otherParams.enabledOnThisWebsite, message.otherParams.links);
+				await app.toggleUglyLinks(message.otherParams.enabledOnThisWebsite, message.otherParams.links);
 				break;
 			default:
 				console.warn('Message not recognized:', message);
@@ -249,6 +249,5 @@ class App {
 	}
 }
 
-(async () => {
-	await new App().initUglyLinks();
-})();
+new App().initUglyLinks()
+	.catch(reason => console.error("Error initializing content-script",reason));

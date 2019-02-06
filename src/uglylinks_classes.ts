@@ -5,8 +5,6 @@
 //You should have received a copy of the GNU General Public License along with UglyLinks.  If not, see <http://www.gnu.org/licenses/>. 
 import { UpgradeDB, DB, ObjectStore, Transaction } from "./lib/idb";
 
-//console.log('ulc idb', idb);
-
 export class LinkProps {
 	url: string = '';
 	added: Date = new Date();
@@ -128,7 +126,7 @@ export class UL_links {
 		console.debug('removeURL', url, persist);
 
 		let nUrl: string = this.normalizeURL(url);
-		this.storage.deleteFromStore(this.storeName, nUrl);
+		return this.storage.deleteFromStore(this.storeName, nUrl);
 	}
 	async addURL(url: string, props: LinkProps = new LinkProps(), persist = true): Promise<boolean> {
 		console.debug('addURL', url, props, persist);
@@ -139,12 +137,12 @@ export class UL_links {
 		props.last_seen = props.added;
 		props.uglified_count = 1;
 
-		this.storage.putInStore(this.storeName, props);
+		await this.storage.putInStore(this.storeName, props);
 
 		return true;
 	}
 	async removeAllURLs() {
-		this.storage.deleteAllFromStore(this.storeName);
+		return this.storage.deleteAllFromStore(this.storeName);
 	}
 
 	async hasURL(url: string, touch: boolean = false): Promise<boolean> {
@@ -157,7 +155,7 @@ export class UL_links {
 			u.last_seen = new Date();
 			if (!u.uglified_count) u.uglified_count = 0;
 			u.uglified_count++;
-			this.storage.putInStore(nUrl, u);
+			await this.storage.putInStore(nUrl, u);
 			return true
 		}
 
@@ -220,21 +218,21 @@ export class UglyLinks {
 	async importFile(_e: Event, fileElem: HTMLInputElement, callback?: Function): Promise<boolean> {
 		return new Promise<boolean>((resolve, reject) => {
 			Logger.debug('File has changed, proceeding to import');
-			let file:File;
+			let file: File;
 			if (fileElem.files)
 				file = fileElem.files[0];
-			else{
+			else {
 				reject('65425: invalid file');
 				return;
 			}
 
 			const reader: FileReader = new FileReader();
-			if (reader.result instanceof ArrayBuffer){
+			if (reader.result instanceof ArrayBuffer) {
 				reject('09232: invalid result');
 				return;
 			}
 
-			if (!file){
+			if (!file) {
 				reject('invalid file element');
 				return;
 			}
@@ -242,7 +240,7 @@ export class UglyLinks {
 			let x: UglyLinks = this;
 			reader.addEventListener("loadend", async function () {
 				const textResult: string = <string>reader.result;
-				if (!textResult) { 
+				if (!textResult) {
 					alert(i18n.msgs({ id: "file_empty", def: "The file could not be read or is empty" }));
 					resolve(false);
 					return;
@@ -256,7 +254,8 @@ export class UglyLinks {
 					console.debug('adding url to map', e);
 					const props: LinkProps = e;
 					if (!props.added) props.added = new Date();
-					x.links.addURL(e.url, props);
+					x.links.addURL(e.url, props)
+						.catch(reason => console.error('Error adding URL', reason));
 				});
 
 				const resp: any = await x.sendMsgToAll("uglify_all", { origin: "imported" });
@@ -281,11 +280,11 @@ export class UglyLinks {
 		Logger.trace('Exporting links str:', strLnks);
 
 		const nUrl: string = URL.createObjectURL(new Blob([strLnks], { type: 'application/json' }));
-		browser.downloads.download({ url: nUrl, filename: 'uglylinks.json' });
+		await browser.downloads.download({ url: nUrl, filename: 'uglylinks.json' });
 		return true;
 	}
 
-	sendMsgToAll(pType: string, otherParams?: object): Promise<any> {
+	async sendMsgToAll(pType: string, otherParams?: object): Promise<any> {
 		return browser.runtime.sendMessage({
 			type: pType,
 			otherParams: otherParams

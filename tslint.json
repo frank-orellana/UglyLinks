@@ -1,5 +1,4 @@
 {
-
     "linterOptions": {
         "exclude": [
             "node_modules"
@@ -21,6 +20,9 @@
         "no-arg": true,
         "no-bitwise": true,
         "no-conditional-assignment": true,
-        "no-consecutive-blank-lines": false
+        "no-consecutive-blank-lines": false,
+        "await-promise": true,
+        "promise-function-async": true,
+        "no-floating-promises": true
     }
 }

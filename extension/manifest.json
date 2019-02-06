@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "UglyLinks",
-  "version": "0.1.2.33",
-  "version_name": "0.1.2 alpha",
+  "version": "0.1.3.38",
+  "version_name": "0.1.3 alpha",
   "default_locale": "en",
   "description": "Uglify links you don't like.",
   "homepage_url": "https://github.com/frank-orellana/uglylinks",

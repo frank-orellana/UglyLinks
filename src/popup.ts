@@ -22,7 +22,7 @@ Object.defineProperty(window, 'popupApp', {
 	get: () => popupApp
 });
 
-const ulApp = new UglyLinks();
+const ulApp: UglyLinks = new UglyLinks();
 
 ulApp.init().then(() => {
 
@@ -71,10 +71,9 @@ ulApp.init().then(() => {
 				if (fileElem)
 					fileElem.click();
 			},
-			updateLinks: () => ulApp.sendMsgToActiveTab("uglify_all", { origin: "popup" }),
-			exportLinks: () => ulApp.export_links(),
+			updateLinks: async () => ulApp.sendMsgToActiveTab("uglify_all", { origin: "popup" }),
 			closeWindow: () => window.close(),
-			openOptions: () => browser.runtime.openOptionsPage(),
+			openOptions: async () => browser.runtime.openOptionsPage(),
 			messageListener: async function (message: any) {
 				console.debug('Receiving message:', message);
 				if (message.to && message.to != 'popup') {
@@ -83,7 +82,7 @@ ulApp.init().then(() => {
 				}
 				switch (message.type) {
 					case 'uglified_count':
-						let cnt = message.count;
+						let cnt: number = message.count;
 						this.uglified_count = cnt ? cnt : 0;
 						break;
 					default:
@@ -93,7 +92,7 @@ ulApp.init().then(() => {
 		},
 		created: async function () {
 			console.debug('Popup vue app created');
-			let x = this;
+			let x: any = this;
 			browser.runtime.onMessage.addListener((message: any) => x.messageListener(message));
 			this.disabledOnThisWebsite = await ulApp.disabledWebsites.isUrlDisabled(currentURL);
 			this.uglified_count = await ulApp.links.size;
@@ -103,6 +102,7 @@ ulApp.init().then(() => {
 	});
 
 })
+.catch(reason => console.error("Error loading popup",reason));
 
 
 

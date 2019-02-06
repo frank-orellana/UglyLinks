@@ -5,11 +5,11 @@
 // UglyLinks is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 // You should have received a copy of the GNU General Public License along with UglyLinks.  If not, see <http://www.gnu.org/licenses/>. 
 /// <references type='web-ext-types' />
-console.debug('uglylinks Content Script Loading!');
+console.debug(`UglyLinks ${browser.runtime.getManifest().version} Content Script Loading!`);
 class App {
     constructor() {
         this._self = this;
-        this.observer = new MutationObserver(function (mutations) {
+        this.observer = new MutationObserver(async function (mutations) {
             let anchors = new Set();
             mutations.forEach((mutation) => {
                 if (mutation.type == 'childList') {
@@ -40,7 +40,7 @@ class App {
                 }
             });
             if (anchors.size > 0) {
-                App.onNodeInserted(Array.from(anchors));
+                await App.onNodeInserted(Array.from(anchors));
             }
         });
     }
@@ -59,7 +59,7 @@ class App {
     async initUglyLinks() {
         console.log('Initializing UglyLinks');
         /// @ts-ignore
-        browser.runtime.onMessage.addListener((message) => App.messageListener(message, this));
+        browser.runtime.onMessage.addListener(async (message) => App.messageListener(message, this));
         console.debug('Listener added on Content Script');
         const url = window.location.host;
         console.debug(`Checking if "${url}" is disabled`);
@@ -101,7 +101,7 @@ class App {
                 App.DeUglifyAll();
                 break;
             case 'toggle_ul': //Activate or deactivate uglylinks on this website
-                app.toggleUglyLinks(message.otherParams.enabledOnThisWebsite, message.otherParams.links);
+                await app.toggleUglyLinks(message.otherParams.enabledOnThisWebsite, message.otherParams.links);
                 break;
             default:
                 console.warn('Message not recognized:', message);
@@ -211,6 +211,5 @@ class App {
     }
 }
 App.uglylinks = undefined;
-(async () => {
-    await new App().initUglyLinks();
-})();
+new App().initUglyLinks()
+    .catch(reason => console.error("Error initializing content-script", reason));

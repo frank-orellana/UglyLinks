@@ -19,8 +19,7 @@
     "target": "es2017",
     "module": "es6",
     "typeRoots": ["@types", "node_modules/web-ext-types","node_modules/@types","../node_modules/@types",
-      "../node_modules/vue/types",
-      "node_modules/vue/types"],
+      "../node_modules/vue/types"],
     "lib": [
       "es2017",
       "dom"

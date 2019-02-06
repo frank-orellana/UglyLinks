@@ -34,10 +34,10 @@ browser.contextMenus.create({
 async function uglifyOneLink(tabs, pUrl) {
     const isUglified = await ulApp.links.hasURL(pUrl);
     if (isUglified)
-        ulApp.links.removeURL(pUrl);
+        await ulApp.links.removeURL(pUrl);
     else
-        ulApp.links.addURL(pUrl);
-    browser.tabs.sendMessage(tabs[0].id, {
+        await ulApp.links.addURL(pUrl);
+    await browser.tabs.sendMessage(tabs[0].id, {
         type: "uglify",
         alreadyUglified: isUglified,
         url: pUrl,
@@ -82,4 +82,5 @@ ulApp.init().then(() => {
                 });
         }
     });
-});
+})
+    .catch(reason => console.error(reason));

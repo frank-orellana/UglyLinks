@@ -1,4 +1,3 @@
-//console.log('ulc idb', idb);
 export class LinkProps {
     constructor() {
         this.url = '';
@@ -107,7 +106,7 @@ export class UL_links {
     async removeURL(url, persist = true) {
         console.debug('removeURL', url, persist);
         let nUrl = this.normalizeURL(url);
-        this.storage.deleteFromStore(this.storeName, nUrl);
+        return this.storage.deleteFromStore(this.storeName, nUrl);
     }
     async addURL(url, props = new LinkProps(), persist = true) {
         console.debug('addURL', url, props, persist);
@@ -116,11 +115,11 @@ export class UL_links {
         props.added = new Date();
         props.last_seen = props.added;
         props.uglified_count = 1;
-        this.storage.putInStore(this.storeName, props);
+        await this.storage.putInStore(this.storeName, props);
         return true;
     }
     async removeAllURLs() {
-        this.storage.deleteAllFromStore(this.storeName);
+        return this.storage.deleteAllFromStore(this.storeName);
     }
     async hasURL(url, touch = false) {
         this.checkInitialization();
@@ -131,7 +130,7 @@ export class UL_links {
             if (!u.uglified_count)
                 u.uglified_count = 0;
             u.uglified_count++;
-            this.storage.putInStore(nUrl, u);
+            await this.storage.putInStore(nUrl, u);
             return true;
         }
         return u ? true : false;
@@ -207,7 +206,8 @@ export class UglyLinks {
                     const props = e;
                     if (!props.added)
                         props.added = new Date();
-                    x.links.addURL(e.url, props);
+                    x.links.addURL(e.url, props)
+                        .catch(reason => console.error('Error adding URL', reason));
                 });
                 const resp = await x.sendMsgToAll("uglify_all", { origin: "imported" });
                 console.debug('Message to update all sent. Response:', resp);
@@ -226,10 +226,10 @@ export class UglyLinks {
         const strLnks = JSON.stringify({ uglyLinks: await this.links.getLinksArray() });
         Logger.trace('Exporting links str:', strLnks);
         const nUrl = URL.createObjectURL(new Blob([strLnks], { type: 'application/json' }));
-        browser.downloads.download({ url: nUrl, filename: 'uglylinks.json' });
+        await browser.downloads.download({ url: nUrl, filename: 'uglylinks.json' });
         return true;
     }
-    sendMsgToAll(pType, otherParams) {
+    async sendMsgToAll(pType, otherParams) {
         return browser.runtime.sendMessage({
             type: pType,
             otherParams: otherParams

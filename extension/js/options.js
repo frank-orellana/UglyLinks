@@ -40,7 +40,7 @@ uglyLinks.init()
                 else
                     console.trace('Operation cancelled');
             },
-            exportLinks: () => uglyLinks.export_links(),
+            exportLinks: async () => uglyLinks.export_links(),
             importLinks: function () {
                 const fileElem = document.getElementById("fileElem");
                 if (fileElem)
@@ -61,4 +61,5 @@ uglyLinks.init()
             this.disabledWebs = await uglyLinks.disabledWebsites.getLinksArray() || [];
         }
     });
-});
+})
+    .catch(reason => console.error("Error initializing options", reason));
