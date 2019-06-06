@@ -63,6 +63,7 @@ ulApp.init().then(() => {
 			},
 			toggleThisPageURL: async function () {
 				const uglified: boolean = await ulApp.toggleURL(currentURL);
+				/// @ts-ignore
 				await this.setMsgTogglePageURL();
 				console.debug(`The URL '${currentURL.substr(0, 25)}...' has been ${uglified ? "uglified" : "deuglified"}`);
 			},
@@ -96,7 +97,7 @@ ulApp.init().then(() => {
 			browser.runtime.onMessage.addListener((message: any) => x.messageListener(message));
 			this.disabledOnThisWebsite = await ulApp.disabledWebsites.isUrlDisabled(currentURL);
 			this.uglified_count = await ulApp.links.size;
-
+			/// @ts-ignore
 			await this.setMsgTogglePageURL();
 		}
 	});
