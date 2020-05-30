@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "./extension/js/",
     "sourceMap": false,
+    "newLine": "lf",
     "declaration": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,

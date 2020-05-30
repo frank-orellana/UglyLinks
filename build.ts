@@ -67,7 +67,9 @@ const zippedFFExtFullPath: string = path.join(buildDir, "UglyLinks-firefox-lates
 (async  () => {
     await zipExtensions(tmpDirFirefox, zippedFFExtFullPath);
     fs.copyFileSync(zippedFFExtFullPath, zippedFFExtFullPath.replace('latest', fileJson.version));
-})();
+})()
+.then(() => console.log('Firefox build success'))
+.catch((err) => console.error('Firefox build error',err));
 
 /*Chrome*/
 copyFolderRecursiveSync(extensionDir, tmpDirChrome, false);
@@ -77,9 +79,11 @@ const zippedCHromeExtFullPath: string = path.join(buildDir, "UglyLinks-chrome-la
 (async () => {
     await zipExtensions(tmpDirChrome, zippedCHromeExtFullPath);
     fs.copyFileSync(zippedCHromeExtFullPath, zippedCHromeExtFullPath.replace('latest', fileJson.version));
-})();
+})()
+.then(() => console.log('Chrome build success'))
+.catch((err) => console.error('Chrome build error',err));
 
-function zipExtensions(sourceDir: string, destFileName: string) {
+async function zipExtensions(sourceDir: string, destFileName: string) {
     return new Promise((resolve, reject) => {
         const isWindows: boolean = process.platform.substr(0, 3) === 'win';
 

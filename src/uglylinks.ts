@@ -234,10 +234,10 @@ class App {
 	}
 
 	static deUglifyElement(e: HTMLElement) {
-		e.style.color = e.getAttribute("data-UL_color");
-		e.style.backgroundColor = e.getAttribute("data-UL_backgroundColor");
-		e.style.opacity = e.getAttribute("data-UL_opacity");
-		e.style.textDecoration = e.getAttribute("data-UL_textDecoration");
+		e.style.color = e.getAttribute("data-UL_color") || '';
+		e.style.backgroundColor = e.getAttribute("data-UL_backgroundColor") || '';
+		e.style.opacity = e.getAttribute("data-UL_opacity") || '';
+		e.style.textDecoration = e.getAttribute("data-UL_textDecoration") || '';
 
 		for (let c of Array.from(e.children))
 			this.deUglifyElement(c as HTMLElement);
