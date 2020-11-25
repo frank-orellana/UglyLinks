@@ -361,13 +361,16 @@ export interface i18n_msg {
 
 export class i18n {
 	static msgs(msg: string | i18n_msg, ...args: Array<any>): string {
+		const msgid : string = (typeof msg === 'string')? msg : msg.id;
 		try {
+			const translatedMsg : string = browser.i18n.getMessage(msgid, ...args);
+			if(translatedMsg !== undefined)
+				return translatedMsg;
+			
 			if (typeof msg === 'string') {
-				const translatedMsg: string = browser.i18n.getMessage(msg, ...args);
-				return translatedMsg ? translatedMsg : msg;
+				return msg;
 			} else {
-				const translatedMsg: string = browser.i18n.getMessage(msg.id, ...args);
-				return translatedMsg ? translatedMsg : (msg.default ? msg.default : (msg.def ? msg.def : ''));
+				return msg.default ? msg.default : (msg.def ? msg.def : '');
 			}
 		} catch (e) {
 			console.error("Error getting i18n message", msg, e);
